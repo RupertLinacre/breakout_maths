@@ -52,6 +52,21 @@ class GameScene extends Phaser.Scene {
         g.fillStyle(0xe74c3c);
         g.fillRect(0, 0, 70, 30);
         g.generateTexture('blockHard', 70, 30);
+        g.clear();
+
+        // Create super special block
+        g.fillStyle(0x9b59b6); // Purple color
+        g.fillRect(0, 0, 70, 30);
+
+        // Add some decoration to make it look special
+        g.fillStyle(0xf1c40f); // Yellow decorations
+
+        // Draw decorative circles instead of stars
+        g.fillCircle(15, 15, 5);
+        g.fillCircle(35, 15, 5);
+        g.fillCircle(55, 15, 5);
+
+        g.generateTexture('blockSuper', 70, 30);
         g.destroy();
     }
 
@@ -154,11 +169,18 @@ class GameScene extends Phaser.Scene {
         const y = lowestBlock.y;
         const difficulty = Helpers.getRandomDifficulty();
 
+        // Determine block type - occasionally create a super special block
+        let blockType = 'standard';
+        if (difficulty === 'hard') {
+            // 20% chance of a super special block for hard difficulty
+            blockType = Math.random() < 0.2 ? 'super' : 'multi';
+        }
+
         // Destroy the regular block
         lowestBlock.destroy();
 
-        // Create a math block in its place
-        const mathBlock = new MathBlock(this, x, y, difficulty);
+        // Create a math block using the factory
+        const mathBlock = BlockFactory.createMathBlock(this, x, y, blockType, difficulty);
 
         // Update the grid reference
         const row = Math.floor((y - 50) / 40);
@@ -320,20 +342,9 @@ class GameScene extends Phaser.Scene {
 
         if (targetBlock) {
             const points = targetBlock.problem.getPoints();
-            const targetX = targetBlock.x;
-            const targetY = targetBlock.y;
-            const difficulty = targetBlock.problem.difficulty;
 
-            // Shoot ball(s) toward the block
-            if (difficulty === 'hard') {
-                // Shoot 3 balls for hard problems
-                this.shootBall(this.paddle.getX(), this.paddle.getY() - 10, targetX, targetY);
-                this.shootBall(this.paddle.getX(), this.paddle.getY() - 10, { x: 0, y: -1 });
-                this.shootBall(this.paddle.getX(), this.paddle.getY() - 10, { x: -1, y: -1 });
-            } else {
-                // Shoot 1 ball for easy problems
-                this.shootBall(this.paddle.getX(), this.paddle.getY() - 10, targetX, targetY);
-            }
+            // Use the block's ball release strategy
+            targetBlock.releaseBalls();
 
             return { correct: true, points: points };
         } else {

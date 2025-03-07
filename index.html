@@ -30,12 +30,21 @@
 <body>
     <h1>Maths Breakout Game</h1>
     <p>Use LEFT/RIGHT to move. Type answers and hit ENTER to shoot at blocks.</p>
-    <p><span style="color: #2ecc71;">Green blocks</span>: easy problems. <span style="color: #e74c3c;">Red
-            blocks</span>: harder problems (worth more points!)</p>
+    <p>
+        <span style="color: #2ecc71;">Green blocks</span>: easy problems.
+        <span style="color: #e74c3c;">Red blocks</span>: harder problems (worth more points!)
+        <span style="color: #9b59b6;">Purple blocks</span>: super special blocks (spray balls everywhere!)
+    </p>
     <div id="game-container"></div>
 
     <!-- Load game modules -->
     <script src="js/utils/helpers.js"></script>
+
+    <!-- Strategy modules -->
+    <script src="js/strategies/BallReleaseStrategy.js"></script>
+
+    <!-- Factory modules -->
+    <script src="js/factories/BlockFactory.js"></script>
 
     <!-- Math modules -->
     <script src="js/math/MathProblem.js"></script>

@@ -8,14 +8,45 @@ class MathBlock extends Block {
      * @param {Phaser.Scene} scene - The scene this block belongs to
      * @param {number} x - X position
      * @param {number} y - Y position
-     * @param {string} difficulty - Difficulty level ('easy' or 'hard')
+     * @param {object|string} options - Options object or difficulty string
      */
-    constructor(scene, x, y, difficulty = 'easy') {
-        const texture = difficulty === 'hard' ? 'blockHard' : 'blockEasy';
+    constructor(scene, x, y, options = {}) {
+        // Handle case where options is just a difficulty string (for backward compatibility)
+        if (typeof options === 'string') {
+            options = { difficulty: options };
+        }
+
+        // Default options
+        const defaults = {
+            difficulty: 'easy',
+            texture: null,
+            ballReleaseStrategy: null
+        };
+
+        // Merge provided options with defaults
+        const config = { ...defaults, ...options };
+
+        // Determine texture based on difficulty if not specified
+        const texture = config.texture || (config.difficulty === 'hard' ? 'blockHard' : 'blockEasy');
+
         super(scene, x, y, texture);
+
         this.problem = null;
         this.text = null;
-        this.setMathProblem(difficulty);
+
+        // Set math problem based on difficulty
+        this.setMathProblem(config.difficulty);
+
+        // Set ball release strategy based on difficulty if not provided
+        if (!config.ballReleaseStrategy) {
+            if (config.difficulty === 'hard') {
+                this.ballReleaseStrategy = new MultiBallReleaseStrategy();
+            } else {
+                this.ballReleaseStrategy = new StandardBallReleaseStrategy();
+            }
+        } else {
+            this.ballReleaseStrategy = config.ballReleaseStrategy;
+        }
     }
 
     /**
@@ -47,6 +78,24 @@ class MathBlock extends Block {
      */
     checkAnswer(answer) {
         return this.problem && this.problem.validate(answer);
+    }
+
+    /**
+     * Release balls according to the block's strategy
+     * @returns {Array} Array of created balls
+     */
+    releaseBalls() {
+        const paddleX = this.scene.paddle.getX();
+        const paddleY = this.scene.paddle.getY();
+        return this.ballReleaseStrategy.execute(this.scene, paddleX, paddleY, this.x, this.y);
+    }
+
+    /**
+     * Get the column index of this block
+     * @returns {number} Column index
+     */
+    getColumn() {
+        return Helpers.getBlockColumn(this.x);
     }
 
     /**
