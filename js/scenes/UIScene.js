@@ -8,6 +8,7 @@ class UIScene extends Phaser.Scene {
     constructor() {
         super({ key: 'UIScene', active: true });
         this.score = 0;
+        this.victoryElements = null;
     }
 
     /**
@@ -23,7 +24,15 @@ class UIScene extends Phaser.Scene {
         this.messageText = this.add.text(300, 560, '', { fontSize: '24px' }).setOrigin(0.5);
 
         // Setup input handling for answer submission
-        this.input.keyboard.on('keydown-ENTER', this.submitAnswer, this);
+        this.input.keyboard.on('keydown-ENTER', () => {
+            // If victory screen is showing, handle restart
+            if (this.victoryElements) {
+                this.restartFromVictory();
+            } else {
+                // Otherwise submit answer
+                this.submitAnswer();
+            }
+        }, this);
 
         // Setup input handling for typing answers
         this.input.keyboard.on('keydown', e => {
@@ -163,16 +172,34 @@ class UIScene extends Phaser.Scene {
             color: '#fff'
         }).setOrigin(0.5).setInteractive();
 
-        button.on('pointerdown', () => {
-            this.scene.get('GameScene').restartGame();
-            this.score = 0;
-            this.scoreText.setText('Score: 0');
+        // Add instruction text for Enter key
+        const enterText = this.add.text(300, 370, 'Press ENTER to restart', {
+            fontSize: '16px',
+            color: '#fff'
+        }).setOrigin(0.5);
 
-            // Clean up victory screen
-            bg.destroy();
-            text.destroy();
-            button.destroy();
+        // Store victory screen elements for cleanup
+        this.victoryElements = [bg, text, button, enterText];
+
+        button.on('pointerdown', () => {
+            this.restartFromVictory();
         });
+    }
+
+    /**
+     * Restart the game from victory screen
+     */
+    restartFromVictory() {
+        // Only proceed if victory elements exist
+        if (!this.victoryElements) return;
+
+        this.scene.get('GameScene').restartGame();
+        this.score = 0;
+        this.scoreText.setText('Score: 0');
+
+        // Clean up victory screen
+        this.victoryElements.forEach(element => element.destroy());
+        this.victoryElements = null;
     }
 
     /**

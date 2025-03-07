@@ -381,6 +381,9 @@ class GameScene extends Phaser.Scene {
 
         // Recreate game objects
         this.createBlockGrid();
+
+        // Re-establish collision detection
+        this.physics.add.collider(this.balls, this.blocks, this.handleBallBlockCollision, null, this);
     }
 
     /**
