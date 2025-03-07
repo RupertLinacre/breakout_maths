@@ -18,10 +18,14 @@ class UIScene extends Phaser.Scene {
         // Get reference to the game scene
         this.gameScene = this.scene.get('GameScene');
 
+        // Get game dimensions
+        const gameWidth = this.game.config.width;
+        const gameHeight = this.game.config.height;
+
         // Create UI elements
         this.createAnswerInput();
-        this.scoreText = this.add.text(20, 530, 'Score: 0', { fontSize: '24px' });
-        this.messageText = this.add.text(625, 560, '', { fontSize: '24px' }).setOrigin(0.5);
+        this.scoreText = this.add.text(20, gameHeight - 70, 'Score: 0', { fontSize: '24px' });
+        this.messageText = this.add.text(gameWidth / 2, gameHeight - 40, '', { fontSize: '24px' }).setOrigin(0.5);
 
         // Setup input handling for answer submission
         this.input.keyboard.on('keydown-ENTER', () => {
@@ -52,8 +56,15 @@ class UIScene extends Phaser.Scene {
      * Create the answer input box and cursor
      */
     createAnswerInput() {
+        // Get game width for positioning
+        const gameWidth = this.game.config.width;
+        const gameHeight = this.game.config.height;
+
+        // Center position for the input
+        const centerX = gameWidth / 2;
+
         // Create answer input text
-        this.answerText = this.add.text(625, 530, '', {
+        this.answerText = this.add.text(centerX, gameHeight - 70, '', {
             fontSize: '24px',
             backgroundColor: '#fff',
             color: '#333',
@@ -67,7 +78,7 @@ class UIScene extends Phaser.Scene {
         this.answerText.setBackgroundColor('#ffffff');
 
         // Create input box border
-        this.inputBorder = this.add.rectangle(625, 530, 120, 44, 0x3498db, 0);
+        this.inputBorder = this.add.rectangle(centerX, gameHeight - 70, 120, 44, 0x3498db, 0);
         this.inputBorder.setStrokeStyle(2, 0x3498db);
 
         // Create blinking cursor
@@ -159,13 +170,21 @@ class UIScene extends Phaser.Scene {
      * Show victory screen
      */
     showVictory() {
-        const bg = this.add.rectangle(300, 250, 400, 200, 0x000000, 0.7);
-        const text = this.add.text(300, 250,
+        // Get game dimensions
+        const gameWidth = this.game.config.width;
+        const gameHeight = this.game.config.height;
+
+        // Center position
+        const centerX = gameWidth / 2;
+        const centerY = gameHeight / 2;
+
+        const bg = this.add.rectangle(centerX, centerY, 400, 200, 0x000000, 0.7);
+        const text = this.add.text(centerX, centerY,
             `Victory!\nYour score: ${this.score}`,
             { fontSize: '32px', color: '#fff', align: 'center' }
         ).setOrigin(0.5);
 
-        const button = this.add.text(300, 320, 'Play Again', {
+        const button = this.add.text(centerX, centerY + 70, 'Play Again', {
             fontSize: '24px',
             backgroundColor: '#3498db',
             padding: { x: 20, y: 10 },
@@ -173,7 +192,7 @@ class UIScene extends Phaser.Scene {
         }).setOrigin(0.5).setInteractive();
 
         // Add instruction text for Enter key
-        const enterText = this.add.text(300, 370, 'Press ENTER to restart', {
+        const enterText = this.add.text(centerX, centerY + 120, 'Press ENTER to restart', {
             fontSize: '16px',
             color: '#fff'
         }).setOrigin(0.5);

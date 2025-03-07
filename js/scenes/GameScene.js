@@ -86,8 +86,9 @@ class GameScene extends Phaser.Scene {
         this.blocks = this.physics.add.staticGroup();
         this.balls = this.physics.add.group();
 
-        // Create paddle - center it in the wider game area
-        this.paddle = new Paddle(this, 625, 480);
+        // Create paddle - center it horizontally based on game width
+        const gameWidth = this.game.config.width;
+        this.paddle = new Paddle(this, gameWidth / 2, 480);
 
         // Create blocks grid (16x5)
         this.createBlockGrid();

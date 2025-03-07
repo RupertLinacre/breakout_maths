@@ -12,8 +12,19 @@ class Paddle {
         this.scene = scene;
         this.sprite = scene.physics.add.image(x, y, 'paddle').setImmovable(true);
         this.speed = 7;
-        this.minX = 40;
-        this.maxX = 610;
+
+        // Get the game width from the scene's game config
+        const gameWidth = scene.game.config.width;
+
+        // Calculate paddle bounds based on game width and paddle width
+        // The paddle width is 80px based on the texture generation in GameScene.js
+        const paddleHalfWidth = 40; // Half of the paddle width
+
+        // Set minimum X to be the paddle's half-width from the left edge
+        this.minX = paddleHalfWidth;
+
+        // Set maximum X to be the paddle's half-width from the right edge
+        this.maxX = gameWidth - paddleHalfWidth;
     }
 
     /**
