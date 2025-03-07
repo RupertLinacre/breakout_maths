@@ -67,7 +67,7 @@ class MultiBallReleaseStrategy extends BallReleaseStrategy {
  */
 class SuperSpecialBallReleaseStrategy extends BallReleaseStrategy {
     /**
-     * Execute the super special ball release strategy (spray in all directions)
+     * Execute the super special ball release strategy (spray upwards between 10° and 170°)
      * @param {Phaser.Scene} scene - The game scene
      * @param {number} paddleX - Paddle X position
      * @param {number} paddleY - Paddle Y position
@@ -76,11 +76,10 @@ class SuperSpecialBallReleaseStrategy extends BallReleaseStrategy {
      * @returns {Array} Array of created balls
      */
     execute(scene, paddleX, paddleY, targetX, targetY) {
-        // Spray balls in all directions
         const balls = [];
-        // Create 8 balls in different directions
-        for (let angle = 0; angle < 360; angle += 45) {
-            const radians = Phaser.Math.DegToRad(angle);
+        // Create balls from 10° to 170° in increments of 20°
+        for (let angle = 10; angle <= 170; angle += 20) {
+            const radians = Phaser.Math.DegToRad(angle + 180);
             const direction = {
                 x: Math.cos(radians),
                 y: Math.sin(radians)

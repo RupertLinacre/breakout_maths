@@ -59,12 +59,12 @@ class GameScene extends Phaser.Scene {
         g.fillRect(0, 0, 70, 30);
 
         // Add some decoration to make it look special
-        g.fillStyle(0xf1c40f); // Yellow decorations
+        // g.fillStyle(0xf1c40f); // Yellow decorations
 
-        // Draw decorative circles instead of stars
-        g.fillCircle(15, 15, 5);
-        g.fillCircle(35, 15, 5);
-        g.fillCircle(55, 15, 5);
+        // // Draw decorative circles instead of stars
+        // g.fillCircle(15, 15, 5);
+        // g.fillCircle(35, 15, 5);
+        // g.fillCircle(55, 15, 5);
 
         g.generateTexture('blockSuper', 70, 30);
         g.destroy();
