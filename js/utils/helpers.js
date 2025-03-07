@@ -25,10 +25,18 @@ const Helpers = {
 
     /**
      * Get a random difficulty based on probability
+     * @param {number} mediumProbability - Probability of getting a medium problem (0-1)
      * @param {number} hardProbability - Probability of getting a hard problem (0-1)
-     * @returns {string} 'easy' or 'hard'
+     * @returns {string} 'easy', 'medium', or 'hard'
      */
-    getRandomDifficulty: function (hardProbability = 0.25) {
-        return Math.random() < hardProbability ? 'hard' : 'easy';
+    getRandomDifficulty: function (mediumProbability = 0.2, hardProbability = 0.05) {
+        const rand = Math.random();
+        if (rand < hardProbability) {
+            return 'hard';
+        } else if (rand < hardProbability + mediumProbability) {
+            return 'medium';
+        } else {
+            return 'easy';
+        }
     }
 };
