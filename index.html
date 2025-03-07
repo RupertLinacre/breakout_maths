@@ -13,6 +13,10 @@
             background-color: #f0f0f0;
             margin: 0;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         h1 {
@@ -22,7 +26,7 @@
 
         #game-container {
             margin: 0 auto;
-            width: 650px;
+            width: 1250px;
         }
     </style>
 </head>
@@ -31,9 +35,10 @@
     <h1>Maths Breakout Game</h1>
     <p>Use LEFT/RIGHT to move. Type answers and hit ENTER to shoot at blocks.</p>
     <p>
-        <span style="color: #2ecc71;">Green blocks</span>: easy problems.
-        <span style="color: #e74c3c;">Red blocks</span>: harder problems (worth more points!)
-        <span style="color: #9b59b6;">Purple blocks</span>: super special blocks (spray balls everywhere!)
+        <span style="color: #2ecc71;">Green blocks</span>: easy problems (1 ball).
+        <span style="color: #e74c3c;">Red blocks</span>: medium problems (3 balls).
+        <span style="color: #9b59b6;">Purple blocks</span>: hard problems (spray balls).
+        <span style="color: #8e44ad;">Dark purple blocks</span>: super special blocks (spray balls everywhere!)
     </p>
     <div id="game-container"></div>
 
@@ -49,6 +54,7 @@
     <!-- Math modules -->
     <script src="js/math/MathProblem.js"></script>
     <script src="js/math/EasyMath.js"></script>
+    <script src="js/math/MediumMath.js"></script>
     <script src="js/math/HardMath.js"></script>
 
     <!-- Entity modules -->

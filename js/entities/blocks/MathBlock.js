@@ -27,26 +27,28 @@ class MathBlock extends Block {
         const config = { ...defaults, ...options };
 
         // Determine texture based on difficulty if not specified
-        const texture = config.texture || (config.difficulty === 'hard' ? 'blockHard' : 'blockEasy');
+        let texture = config.texture;
+        if (!texture) {
+            if (config.difficulty === 'hard') {
+                texture = 'blockHard';
+            } else if (config.difficulty === 'medium') {
+                texture = 'blockMedium';
+            } else {
+                texture = 'blockEasy';
+            }
+        }
 
         super(scene, x, y, texture);
 
         this.problem = null;
         this.text = null;
+        this.difficulty = config.difficulty; // Store the difficulty
 
         // Set math problem based on difficulty
         this.setMathProblem(config.difficulty);
 
-        // Set ball release strategy based on difficulty if not provided
-        if (!config.ballReleaseStrategy) {
-            if (config.difficulty === 'hard') {
-                this.ballReleaseStrategy = new MultiBallReleaseStrategy();
-            } else {
-                this.ballReleaseStrategy = new StandardBallReleaseStrategy();
-            }
-        } else {
-            this.ballReleaseStrategy = config.ballReleaseStrategy;
-        }
+        // Use the provided ball release strategy or default to standard
+        this.ballReleaseStrategy = config.ballReleaseStrategy || new StandardBallReleaseStrategy();
     }
 
     /**

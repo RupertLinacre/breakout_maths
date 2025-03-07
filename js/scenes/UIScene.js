@@ -21,7 +21,7 @@ class UIScene extends Phaser.Scene {
         // Create UI elements
         this.createAnswerInput();
         this.scoreText = this.add.text(20, 530, 'Score: 0', { fontSize: '24px' });
-        this.messageText = this.add.text(300, 560, '', { fontSize: '24px' }).setOrigin(0.5);
+        this.messageText = this.add.text(625, 560, '', { fontSize: '24px' }).setOrigin(0.5);
 
         // Setup input handling for answer submission
         this.input.keyboard.on('keydown-ENTER', () => {
@@ -53,7 +53,7 @@ class UIScene extends Phaser.Scene {
      */
     createAnswerInput() {
         // Create answer input text
-        this.answerText = this.add.text(300, 530, '', {
+        this.answerText = this.add.text(625, 530, '', {
             fontSize: '24px',
             backgroundColor: '#fff',
             color: '#333',
@@ -67,7 +67,7 @@ class UIScene extends Phaser.Scene {
         this.answerText.setBackgroundColor('#ffffff');
 
         // Create input box border
-        this.inputBorder = this.add.rectangle(300, 530, 120, 44, 0x3498db, 0);
+        this.inputBorder = this.add.rectangle(625, 530, 120, 44, 0x3498db, 0);
         this.inputBorder.setStrokeStyle(2, 0x3498db);
 
         // Create blinking cursor

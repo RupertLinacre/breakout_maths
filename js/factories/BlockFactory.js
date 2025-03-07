@@ -8,7 +8,7 @@ class BlockFactory {
      * @param {number} x - X position
      * @param {number} y - Y position
      * @param {string} blockType - Type of block to create ('standard', 'multi', 'super', etc.)
-     * @param {string} difficulty - Math difficulty ('easy' or 'hard')
+     * @param {string} difficulty - Math difficulty ('easy', 'medium', or 'hard')
      * @returns {MathBlock} The created block
      */
     static createMathBlock(scene, x, y, blockType, difficulty) {
@@ -16,19 +16,26 @@ class BlockFactory {
             difficulty: difficulty
         };
 
-        // Configure block based on type
-        switch (blockType) {
-            case 'super':
-                options.texture = 'blockSuper'; // This texture needs to be created
+        // Configure block based on type and difficulty
+        if (blockType === 'super') {
+            // Super special blocks always spray balls
+            options.texture = 'blockSuper';
+            options.ballReleaseStrategy = new SuperSpecialBallReleaseStrategy();
+        } else {
+            // For standard blocks, assign strategy based on difficulty
+            if (difficulty === 'hard') {
+                // Hard blocks (purple) spray balls
+                options.texture = 'blockHard'; // Ensure texture is set
                 options.ballReleaseStrategy = new SuperSpecialBallReleaseStrategy();
-                break;
-            case 'multi':
+            } else if (difficulty === 'medium') {
+                // Medium blocks (red) shoot 3 balls
+                options.texture = 'blockMedium'; // Ensure texture is set
                 options.ballReleaseStrategy = new MultiBallReleaseStrategy();
-                break;
-            case 'standard':
-            default:
+            } else {
+                // Easy blocks (green) shoot 1 ball
+                options.texture = 'blockEasy'; // Ensure texture is set
                 options.ballReleaseStrategy = new StandardBallReleaseStrategy();
-                break;
+            }
         }
 
         return new MathBlock(scene, x, y, options);

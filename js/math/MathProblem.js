@@ -35,17 +35,26 @@ class MathProblem {
      * @returns {number} Points for solving this problem
      */
     getPoints() {
-        return this.difficulty === 'hard' ? 50 : 20;
+        switch (this.difficulty) {
+            case 'hard':
+                return 50;
+            case 'medium':
+                return 30;
+            default:
+                return 20;
+        }
     }
 
     /**
      * Factory method to create a math problem of the specified difficulty
-     * @param {string} difficulty - The difficulty level ('easy' or 'hard')
+     * @param {string} difficulty - The difficulty level ('easy', 'medium', or 'hard')
      * @returns {MathProblem} A new math problem instance
      */
     static create(difficulty) {
         if (difficulty === 'hard') {
             return new HardMath();
+        } else if (difficulty === 'medium') {
+            return new MediumMath();
         } else {
             return new EasyMath();
         }

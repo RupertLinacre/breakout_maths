@@ -44,18 +44,26 @@ class GameScene extends Phaser.Scene {
         g.clear();
 
         // Create blocks - make them wider (70px instead of 60px)
+        // Easy blocks - green
         g.fillStyle(0x2ecc71);
         g.fillRect(0, 0, 70, 30);
         g.generateTexture('blockEasy', 70, 30);
         g.clear();
 
+        // Medium blocks - red
         g.fillStyle(0xe74c3c);
+        g.fillRect(0, 0, 70, 30);
+        g.generateTexture('blockMedium', 70, 30);
+        g.clear();
+
+        // Hard blocks - purple
+        g.fillStyle(0x9b59b6);
         g.fillRect(0, 0, 70, 30);
         g.generateTexture('blockHard', 70, 30);
         g.clear();
 
-        // Create super special block
-        g.fillStyle(0x9b59b6); // Purple color
+        // Create super special block - darker purple
+        g.fillStyle(0x8e44ad);
         g.fillRect(0, 0, 70, 30);
 
         // Add some decoration to make it look special
@@ -78,10 +86,10 @@ class GameScene extends Phaser.Scene {
         this.blocks = this.physics.add.staticGroup();
         this.balls = this.physics.add.group();
 
-        // Create paddle
-        this.paddle = new Paddle(this, 300, 480);
+        // Create paddle - center it in the wider game area
+        this.paddle = new Paddle(this, 625, 480);
 
-        // Create blocks grid (8x5)
+        // Create blocks grid (16x5)
         this.createBlockGrid();
 
         // Input handling
@@ -102,7 +110,7 @@ class GameScene extends Phaser.Scene {
         const spacing = 74;
         const startX = 65;
         const startY = 50;
-        const cols = 8;
+        const cols = 16;
         const rows = 5;
 
         // Clear existing blocks
@@ -141,15 +149,28 @@ class GameScene extends Phaser.Scene {
 
         // Assign problems to the lowest block in each column
         for (let col = 0; col < this.blockGrid.length; col++) {
-            this.assignMathProblemToColumn(col);
+            // Force specific difficulties for some columns to ensure we get a mix
+            let forcedDifficulty = null;
+
+            // Every third column is medium (red)
+            if (col % 3 === 0) {
+                forcedDifficulty = 'medium';
+            }
+            // Every fourth column is hard (purple)
+            else if (col % 4 === 0) {
+                forcedDifficulty = 'hard';
+            }
+
+            this.assignMathProblemToColumn(col, forcedDifficulty);
         }
     }
 
     /**
      * Assign a math problem to the lowest block in a specific column
      * @param {number} column - Column index
+     * @param {string|null} forcedDifficulty - Optional forced difficulty
      */
-    assignMathProblemToColumn(column) {
+    assignMathProblemToColumn(column, forcedDifficulty) {
         if (!this.gameInProgress) return;
 
         // Find the lowest active block in this column
@@ -167,14 +188,21 @@ class GameScene extends Phaser.Scene {
         // Replace the regular block with a math block
         const x = lowestBlock.x;
         const y = lowestBlock.y;
-        const difficulty = Helpers.getRandomDifficulty();
 
-        // Determine block type - occasionally create a super special block
-        let blockType = 'standard';
-        if (difficulty === 'hard') {
-            // 20% chance of a super special block for hard difficulty
-            blockType = Math.random() < 0.2 ? 'super' : 'multi';
+        // Force a more even distribution of difficulties
+        // This ensures we get a good mix of all three types
+        let difficulty;
+        const rand = Math.random();
+
+        if (forcedDifficulty) {
+            difficulty = forcedDifficulty;
+        } else {
+            difficulty = rand < 0.33 ? 'easy' : rand < 0.66 ? 'medium' : 'hard';
         }
+
+        // Determine if this should be a super special block (dark purple)
+        // Only 10% chance for a super special block to avoid too many spray blocks
+        let blockType = Math.random() < 0.1 ? 'super' : 'standard';
 
         // Destroy the regular block
         lowestBlock.destroy();
