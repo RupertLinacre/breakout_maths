@@ -1,8 +1,11 @@
+import MathProblem from './MathProblem.js';
+import Helpers from '../utils/helpers.js';
+
 /**
  * Medium difficulty math problems
  * @extends MathProblem
  */
-class MediumMath extends MathProblem {
+export default class MediumMath extends MathProblem {
     /**
      * Create a new medium difficulty math problem
      */

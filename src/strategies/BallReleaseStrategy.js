@@ -1,7 +1,9 @@
+import Phaser from 'phaser';
+
 /**
  * Base class for ball release strategies
  */
-class BallReleaseStrategy {
+export class BallReleaseStrategy {
     /**
      * Execute the ball release strategy
      * @param {Phaser.Scene} scene - The game scene
@@ -21,7 +23,7 @@ class BallReleaseStrategy {
  * Strategy for releasing a single ball
  * @extends BallReleaseStrategy
  */
-class StandardBallReleaseStrategy extends BallReleaseStrategy {
+export class StandardBallReleaseStrategy extends BallReleaseStrategy {
     /**
      * Execute the standard ball release strategy (single ball)
      * @param {Phaser.Scene} scene - The game scene
@@ -41,7 +43,7 @@ class StandardBallReleaseStrategy extends BallReleaseStrategy {
  * Strategy for releasing multiple balls
  * @extends BallReleaseStrategy
  */
-class MultiBallReleaseStrategy extends BallReleaseStrategy {
+export class MultiBallReleaseStrategy extends BallReleaseStrategy {
     /**
      * Execute the multi-ball release strategy (three balls)
      * @param {Phaser.Scene} scene - The game scene
@@ -65,7 +67,7 @@ class MultiBallReleaseStrategy extends BallReleaseStrategy {
  * Strategy for releasing balls in all directions
  * @extends BallReleaseStrategy
  */
-class SuperSpecialBallReleaseStrategy extends BallReleaseStrategy {
+export class SuperSpecialBallReleaseStrategy extends BallReleaseStrategy {
     /**
      * Execute the super special ball release strategy (spray upwards between 10° and 170°)
      * @param {Phaser.Scene} scene - The game scene

@@ -1,8 +1,11 @@
+import MathProblem from './MathProblem.js';
+import Helpers from '../utils/helpers.js';
+
 /**
  * Class for easy math problems (addition and subtraction)
  * @extends MathProblem
  */
-class EasyMath extends MathProblem {
+export default class EasyMath extends MathProblem {
     /**
      * Create a new easy math problem
      */

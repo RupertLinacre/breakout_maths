@@ -1,8 +1,11 @@
+import MathProblem from './MathProblem.js';
+import Helpers from '../utils/helpers.js';
+
 /**
  * Class for hard math problems (multiplication and 2-digit operations)
  * @extends MathProblem
  */
-class HardMath extends MathProblem {
+export default class HardMath extends MathProblem {
     /**
      * Create a new hard math problem
      */

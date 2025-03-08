@@ -1,4 +1,9 @@
 import Block from './Block.js';
+import MathProblem from '../../math/MathProblem.js';
+import EasyMath from '../../math/EasyMath.js';
+import MediumMath from '../../math/MediumMath.js';
+import HardMath from '../../math/HardMath.js';
+import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, SuperSpecialBallReleaseStrategy } from '../../strategies/BallReleaseStrategy.js';
 
 /**
  * Block with a math problem
@@ -59,10 +64,17 @@ export default class MathBlock extends Block {
 
     /**
      * Set a math problem for this block
-     * @param {string} difficulty - Difficulty level
+     * @param {string} difficulty - The difficulty level ('easy', 'medium', or 'hard')
      */
     setMathProblem(difficulty) {
-        this.problem = MathProblem.create(difficulty);
+        // Create the appropriate math problem based on difficulty
+        if (difficulty === 'hard') {
+            this.problem = new HardMath();
+        } else if (difficulty === 'medium') {
+            this.problem = new MediumMath();
+        } else {
+            this.problem = new EasyMath();
+        }
 
         // Create text display for the problem
         if (this.text) {

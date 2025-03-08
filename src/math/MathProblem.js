@@ -1,7 +1,7 @@
 /**
  * Base class for math problems
  */
-class MathProblem {
+export default class MathProblem {
     /**
      * Create a new math problem
      * @param {string} difficulty - The difficulty level ('easy' or 'hard')
@@ -51,12 +51,17 @@ class MathProblem {
      * @returns {MathProblem} A new math problem instance
      */
     static create(difficulty) {
+        // We'll use dynamic imports to avoid circular dependencies
         if (difficulty === 'hard') {
-            return new HardMath();
+            // We'll handle this in MathBlock.js instead
+            console.log("Creating hard math problem");
+            return null; // This will be handled in MathBlock.js
         } else if (difficulty === 'medium') {
-            return new MediumMath();
+            console.log("Creating medium math problem");
+            return null; // This will be handled in MathBlock.js
         } else {
-            return new EasyMath();
+            console.log("Creating easy math problem");
+            return null; // This will be handled in MathBlock.js
         }
     }
 }
