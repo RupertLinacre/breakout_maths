@@ -1,10 +1,7 @@
-/**
- * Math Breakout Game - Main Initialization
- *
- * This file initializes the Phaser game instance and configures the game.
- */
+import Phaser from 'phaser';
+import GameScene from './scenes/GameScene.js';
+import UIScene from './scenes/UIScene.js';
 
-// Game configuration
 const config = {
     type: Phaser.AUTO,
     width: 1250,
@@ -20,5 +17,4 @@ const config = {
     scene: [GameScene, UIScene]
 };
 
-// Start game
-const game = new Phaser.Game(config);
+new Phaser.Game(config);
