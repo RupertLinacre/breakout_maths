@@ -3,10 +3,39 @@
  */
 class GameScene extends Phaser.Scene {
     /**
+     * Default block difficulty spawn rates
+     * These constants control the base probability of each difficulty level
+     * and are used for initialization and resets
+     */
+    static DEFAULT_SPAWN_RATES = {
+        EASY: 0.60,    // 60% chance for easy blocks
+        MEDIUM: 0.30,  // 30% chance for medium blocks
+        HARD: 0.10,    // 10% chance for hard blocks
+        SUPER: 0.05    // 5% chance for super special blocks (independent of difficulty)
+    };
+
+    /**
+     * Current block difficulty spawn rates
+     * These values can change during gameplay to adjust difficulty
+     */
+    static BLOCK_SPAWN_RATES = {
+        // Initialize from DEFAULT_SPAWN_RATES instead of duplicating values
+        EASY: 0,    // Will be set in constructor
+        MEDIUM: 0,
+        HARD: 0,
+        SUPER: 0
+    };
+
+    /**
      * Create a new game scene
      */
     constructor() {
         super({ key: 'GameScene', active: true });
+
+        // Initialize BLOCK_SPAWN_RATES from DEFAULT_SPAWN_RATES
+        // This avoids redundancy and ensures values are only defined once
+        this.resetDifficulty();
+
         this.gameInProgress = true;
         this.blockGrid = [];
         this.mathBlocks = [];
@@ -82,6 +111,9 @@ class GameScene extends Phaser.Scene {
      * Create game objects
      */
     create() {
+        // Reset difficulty to initial values at the start of a new game
+        this.resetDifficulty();
+
         // Setup game groups
         this.blocks = this.physics.add.staticGroup();
         this.balls = this.physics.add.group();
@@ -150,19 +182,9 @@ class GameScene extends Phaser.Scene {
 
         // Assign problems to the lowest block in each column
         for (let col = 0; col < this.blockGrid.length; col++) {
-            // Force specific difficulties for some columns to ensure we get a mix
-            let forcedDifficulty = null;
-
-            // Every third column is medium (red)
-            if (col % 3 === 0) {
-                forcedDifficulty = 'medium';
-            }
-            // Every fourth column is hard (purple)
-            else if (col % 4 === 0) {
-                forcedDifficulty = 'hard';
-            }
-
-            this.assignMathProblemToColumn(col, forcedDifficulty);
+            // We no longer force specific difficulties for columns
+            // All difficulty distribution is handled by the spawn rate constants
+            this.assignMathProblemToColumn(col, null);
         }
     }
 
@@ -190,20 +212,27 @@ class GameScene extends Phaser.Scene {
         const x = lowestBlock.x;
         const y = lowestBlock.y;
 
-        // Force a more even distribution of difficulties
-        // This ensures we get a good mix of all three types
+        // Determine difficulty based on spawn rates or forced difficulty
         let difficulty;
-        const rand = Math.random();
-
         if (forcedDifficulty) {
             difficulty = forcedDifficulty;
         } else {
-            difficulty = rand < 0.33 ? 'easy' : rand < 0.66 ? 'medium' : 'hard';
+            // Use spawn rate constants for probability distribution
+            const rand = Math.random();
+            const rates = GameScene.BLOCK_SPAWN_RATES;
+
+            if (rand < rates.EASY) {
+                difficulty = 'easy';
+            } else if (rand < rates.EASY + rates.MEDIUM) {
+                difficulty = 'medium';
+            } else {
+                difficulty = 'hard';
+            }
         }
 
-        // Determine if this should be a super special block (dark purple)
-        // Only 10% chance for a super special block to avoid too many spray blocks
-        let blockType = Math.random() < 0.1 ? 'super' : 'standard';
+        // Determine if this should be a super special block
+        // Use the SUPER spawn rate constant
+        let blockType = Math.random() < GameScene.BLOCK_SPAWN_RATES.SUPER ? 'super' : 'standard';
 
         // Destroy the regular block
         lowestBlock.destroy();
@@ -250,6 +279,18 @@ class GameScene extends Phaser.Scene {
 
             if (!hasProblems) {
                 this.updateMathProblems();
+
+                // Potentially increase difficulty when new problems are generated
+                // This creates a progressive difficulty curve as the player advances
+                if (this.score && this.score.getScore) {
+                    const currentScore = this.score.getScore();
+
+                    // Increase difficulty at certain score thresholds
+                    // For example, every 1000 points
+                    if (currentScore > 0 && currentScore % 1000 < 100) {
+                        this.increaseDifficulty();
+                    }
+                }
             }
         }
 
@@ -415,6 +456,9 @@ class GameScene extends Phaser.Scene {
         // Clean up existing game objects
         this.cleanupGameObjects();
 
+        // Reset difficulty to initial values
+        this.resetDifficulty();
+
         // Reset game state
         this.gameInProgress = true;
         this.physics.resume();
@@ -457,5 +501,74 @@ class GameScene extends Phaser.Scene {
         } catch (e) {
             console.error("Error cleaning up game objects:", e);
         }
+    }
+
+    /**
+     * Adjust the difficulty spawn rates
+     * @param {object} newRates - Object with new rates for each difficulty
+     * @example
+     * // Make the game harder
+     * adjustDifficultyRates({ EASY: 0.4, MEDIUM: 0.4, HARD: 0.2, SUPER: 0.1 });
+     */
+    adjustDifficultyRates(newRates) {
+        // Update only the provided rates
+        if (newRates.EASY !== undefined) GameScene.BLOCK_SPAWN_RATES.EASY = newRates.EASY;
+        if (newRates.MEDIUM !== undefined) GameScene.BLOCK_SPAWN_RATES.MEDIUM = newRates.MEDIUM;
+        if (newRates.HARD !== undefined) GameScene.BLOCK_SPAWN_RATES.HARD = newRates.HARD;
+        if (newRates.SUPER !== undefined) GameScene.BLOCK_SPAWN_RATES.SUPER = newRates.SUPER;
+
+        // Ensure probabilities sum to 1 for difficulties (not including SUPER which is independent)
+        const total = GameScene.BLOCK_SPAWN_RATES.EASY +
+            GameScene.BLOCK_SPAWN_RATES.MEDIUM +
+            GameScene.BLOCK_SPAWN_RATES.HARD;
+
+        if (total !== 1) {
+            // Normalize the rates
+            const factor = 1 / total;
+            GameScene.BLOCK_SPAWN_RATES.EASY *= factor;
+            GameScene.BLOCK_SPAWN_RATES.MEDIUM *= factor;
+            GameScene.BLOCK_SPAWN_RATES.HARD *= factor;
+
+            console.log('Difficulty rates normalized to sum to 1:', GameScene.BLOCK_SPAWN_RATES);
+        }
+    }
+
+    /**
+     * Increase game difficulty based on score or time
+     * This makes the game progressively harder as the player advances
+     */
+    increaseDifficulty() {
+        if (!this.gameInProgress) return;
+
+        // Get current rates
+        const rates = GameScene.BLOCK_SPAWN_RATES;
+
+        // Gradually decrease easy blocks and increase medium/hard blocks
+        // This is a simple linear progression - could be made more sophisticated
+        const newRates = {
+            EASY: Math.max(0.3, rates.EASY - 0.05),  // Decrease easy blocks but keep at least 30%
+            MEDIUM: Math.min(0.5, rates.MEDIUM + 0.03),  // Increase medium blocks up to 50%
+            HARD: Math.min(0.3, rates.HARD + 0.02),  // Increase hard blocks up to 30%
+            SUPER: Math.min(0.15, rates.SUPER + 0.01)  // Slightly increase super blocks up to 15%
+        };
+
+        this.adjustDifficultyRates(newRates);
+
+        console.log('Difficulty increased:', GameScene.BLOCK_SPAWN_RATES);
+    }
+
+    /**
+     * Reset difficulty to initial values
+     * Call this when starting a new game
+     */
+    resetDifficulty() {
+        // Reset to initial values from DEFAULT_SPAWN_RATES
+        const defaults = GameScene.DEFAULT_SPAWN_RATES;
+        GameScene.BLOCK_SPAWN_RATES.EASY = defaults.EASY;
+        GameScene.BLOCK_SPAWN_RATES.MEDIUM = defaults.MEDIUM;
+        GameScene.BLOCK_SPAWN_RATES.HARD = defaults.HARD;
+        GameScene.BLOCK_SPAWN_RATES.SUPER = defaults.SUPER;
+
+        console.log('Difficulty reset to initial values:', GameScene.BLOCK_SPAWN_RATES);
     }
 }
