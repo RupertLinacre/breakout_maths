@@ -1,8 +1,10 @@
+import Block from './Block.js';
+
 /**
  * Block with a math problem
  * @extends Block
  */
-class MathBlock extends Block {
+export default class MathBlock extends Block {
     /**
      * Create a new math block
      * @param {Phaser.Scene} scene - The scene this block belongs to

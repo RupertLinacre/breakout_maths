@@ -1,7 +1,9 @@
+import MathBlock from '../entities/blocks/MathBlock.js';
+
 /**
  * Factory for creating different types of blocks
  */
-class BlockFactory {
+export default class BlockFactory {
     /**
      * Create a math block with specific properties
      * @param {Phaser.Scene} scene - The scene this block belongs to

@@ -1,7 +1,7 @@
 /**
  * Base class for all block types
  */
-class Block {
+export default class Block {
     /**
      * Create a new block
      * @param {Phaser.Scene} scene - The scene this block belongs to

@@ -1,7 +1,14 @@
+import Phaser from 'phaser';
+import Paddle from '../entities/Paddle.js';
+import Ball from '../entities/Ball.js';
+import Block from '../entities/blocks/Block.js';
+import MathBlock from '../entities/blocks/MathBlock.js';
+import BlockFactory from '../factories/BlockFactory.js';
+
 /**
  * Main game scene for gameplay logic
  */
-class GameScene extends Phaser.Scene {
+export default class GameScene extends Phaser.Scene {
     /**
      * Default block difficulty spawn rates
      * These constants control the base probability of each difficulty level
@@ -47,6 +54,9 @@ class GameScene extends Phaser.Scene {
     preload() {
         // Generate textures on the fly
         this.generateTextures();
+
+        // Add a console log to verify scene loading
+        console.log("Game Scene Loaded");
     }
 
     /**

@@ -1,7 +1,9 @@
+import Phaser from 'phaser';
+
 /**
  * Scene for handling UI elements
  */
-class UIScene extends Phaser.Scene {
+export default class UIScene extends Phaser.Scene {
     /**
      * Create a new UI scene
      */
@@ -26,6 +28,9 @@ class UIScene extends Phaser.Scene {
         this.createAnswerInput();
         this.scoreText = this.add.text(20, gameHeight - 70, 'Score: 0', { fontSize: '24px' });
         this.messageText = this.add.text(gameWidth / 2, gameHeight - 40, '', { fontSize: '24px' }).setOrigin(0.5);
+
+        // Add a console log to verify scene loading
+        console.log("UI Scene Loaded");
 
         // Setup input handling for answer submission
         this.input.keyboard.on('keydown-ENTER', () => {
