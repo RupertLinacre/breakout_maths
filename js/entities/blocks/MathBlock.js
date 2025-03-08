@@ -20,7 +20,9 @@ class MathBlock extends Block {
         const defaults = {
             difficulty: 'easy',
             texture: null,
-            ballReleaseStrategy: null
+            ballReleaseStrategy: new StandardBallReleaseStrategy(),
+            specialEffect: null,
+            scoreMultiplier: 1
         };
 
         // Merge provided options with defaults
@@ -42,18 +44,20 @@ class MathBlock extends Block {
 
         this.problem = null;
         this.text = null;
-        this.difficulty = config.difficulty; // Store the difficulty
+        this.difficulty = config.difficulty;
+
+        // Store strategies and behaviors
+        this.ballReleaseStrategy = config.ballReleaseStrategy;
+        this.specialEffect = config.specialEffect;
+        this.scoreMultiplier = config.scoreMultiplier;
 
         // Set math problem based on difficulty
         this.setMathProblem(config.difficulty);
-
-        // Use the provided ball release strategy or default to standard
-        this.ballReleaseStrategy = config.ballReleaseStrategy || new StandardBallReleaseStrategy();
     }
 
     /**
      * Set a math problem for this block
-     * @param {string} difficulty - Difficulty level ('easy' or 'hard')
+     * @param {string} difficulty - Difficulty level
      */
     setMathProblem(difficulty) {
         this.problem = MathProblem.create(difficulty);
@@ -93,6 +97,16 @@ class MathBlock extends Block {
     }
 
     /**
+     * Apply special effect when block is hit
+     * @param {Ball} ball - The ball that hit this block
+     */
+    applySpecialEffect(ball) {
+        if (this.specialEffect) {
+            this.specialEffect(this.scene, ball, this);
+        }
+    }
+
+    /**
      * Get the column index of this block
      * @returns {number} Column index
      */
@@ -106,6 +120,9 @@ class MathBlock extends Block {
      * @returns {number} Score for destroying this block
      */
     onHit(ball) {
+        // Apply any special effects
+        this.applySpecialEffect(ball);
+
         // Clean up text when block is destroyed
         if (this.text) {
             this.text.destroy();
@@ -113,8 +130,10 @@ class MathBlock extends Block {
 
         super.destroy();
 
-        // Return score based on difficulty
-        return this.problem ? this.problem.getPoints() : 10;
+        // Return score based on difficulty and multiplier
+        return this.problem ?
+            this.problem.getPoints() * this.scoreMultiplier :
+            10 * this.scoreMultiplier;
     }
 
     /**
