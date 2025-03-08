@@ -42,29 +42,31 @@
     </p>
     <div id="game-container"></div>
 
-    <!-- Load game modules -->
+    <!-- Load utility modules first -->
     <script src="js/utils/helpers.js"></script>
 
-    <!-- Strategy modules -->
-    <script src="js/strategies/BallReleaseStrategy.js"></script>
-
-    <!-- Factory modules -->
-    <script src="js/factories/BlockFactory.js"></script>
-
-    <!-- Math modules -->
+    <!-- Load base classes before derived classes -->
     <script src="js/math/MathProblem.js"></script>
+    <script src="js/entities/blocks/Block.js"></script>
+
+    <!-- Load derived math classes -->
     <script src="js/math/EasyMath.js"></script>
     <script src="js/math/MediumMath.js"></script>
     <script src="js/math/HardMath.js"></script>
 
-    <!-- Entity modules -->
-    <script src="js/entities/blocks/Block.js"></script>
+    <!-- Load strategies -->
+    <script src="js/strategies/BallReleaseStrategy.js"></script>
+
+    <!-- Load derived entity classes -->
     <script src="js/entities/blocks/MathBlock.js"></script>
     <script src="js/entities/blocks/SpecialBlock.js"></script>
     <script src="js/entities/Paddle.js"></script>
     <script src="js/entities/Ball.js"></script>
 
-    <!-- Scene modules -->
+    <!-- Load factory modules that depend on entities -->
+    <script src="js/factories/BlockFactory.js"></script>
+
+    <!-- Scene modules that depend on all other modules -->
     <script src="js/scenes/UIScene.js"></script>
     <script src="js/scenes/GameScene.js"></script>
 
