@@ -46,7 +46,7 @@ class MediumMath extends MathProblem {
                 const divisor = Helpers.getRandomInt(2, 10);
                 const result = Helpers.getRandomInt(1, 10);
                 const dividend = divisor * result;
-                this.expression = `${dividend} ÷ ${divisor}`;
+                this.expression = `${dividend} / ${divisor}`;
                 this.answer = result;
                 break;
         }
