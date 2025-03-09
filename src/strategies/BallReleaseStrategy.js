@@ -88,7 +88,7 @@ export class MultiBallReleaseStrategy extends BallReleaseStrategy {
  * Strategy for releasing balls in all directions
  * @extends BallReleaseStrategy
  */
-export class SuperSpecialBallReleaseStrategy extends BallReleaseStrategy {
+export class ArcBallReleaseStrategy extends BallReleaseStrategy {
     /**
      * Create a new SuperSpecialBallReleaseStrategy
      * @param {number} ballCount - Number of balls to release (default: 9)

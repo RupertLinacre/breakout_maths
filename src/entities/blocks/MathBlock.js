@@ -1,6 +1,6 @@
 import Block from './Block.js';
 import { createMathProblem, getProblemExpression, getAnswer, validateAnswer, getPoints } from 'maths-game-problem-generator';
-import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, SuperSpecialBallReleaseStrategy } from '../../strategies/BallReleaseStrategy.js';
+import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, ArcBallReleaseStrategy } from '../../strategies/BallReleaseStrategy.js';
 import Helpers from '../../utils/helpers.js';
 
 /**
