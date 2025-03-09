@@ -119,8 +119,9 @@ The game features a dynamic difficulty system:
 
 ### Block Types
 - **Green blocks**: Reception level math problems (1 ball when solved)
-- **Red blocks**: Year 1 level math problems (3 balls when solved)
-- **Purple blocks**: Year 2 and Year 3 level problems (spray of balls when solved)
+- **Orange blocks**: Year 1 level math problems (3 balls when solved)
+- **Red blocks**: Year 2 level math problems (5 balls spray when solved)
+- **Purple blocks**: Year 3 level math problems (8 balls spray when solved)
 - **Dark purple blocks**: Super special blocks (balls spray everywhere)
 
 ### Progressive Difficulty

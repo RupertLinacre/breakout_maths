@@ -69,7 +69,16 @@ export class MultiBallReleaseStrategy extends BallReleaseStrategy {
  */
 export class SuperSpecialBallReleaseStrategy extends BallReleaseStrategy {
     /**
-     * Execute the super special ball release strategy (spray upwards between 10° and 170°)
+     * Create a new SuperSpecialBallReleaseStrategy
+     * @param {number} ballCount - Number of balls to release (default: 9)
+     */
+    constructor(ballCount = 9) {
+        super();
+        this.ballCount = ballCount;
+    }
+
+    /**
+     * Execute the super special ball release strategy (spray in multiple directions)
      * @param {Phaser.Scene} scene - The game scene
      * @param {number} paddleX - Paddle X position
      * @param {number} paddleY - Paddle Y position
@@ -79,8 +88,15 @@ export class SuperSpecialBallReleaseStrategy extends BallReleaseStrategy {
      */
     execute(scene, paddleX, paddleY, targetX, targetY) {
         const balls = [];
-        // Create balls from 10° to 170° in increments of 20°
-        for (let angle = 10; angle <= 170; angle += 20) {
+
+        // Calculate the angle increment based on the number of balls
+        // We want to cover approximately 160 degrees (from 10° to 170°)
+        const angleRange = 160;
+        const angleIncrement = angleRange / (this.ballCount - 1);
+
+        // Create balls from 10° to 170° with calculated increments
+        for (let i = 0; i < this.ballCount; i++) {
+            const angle = 10 + (i * angleIncrement);
             const radians = Phaser.Math.DegToRad(angle + 180);
             const direction = {
                 x: Math.cos(radians),
@@ -88,6 +104,7 @@ export class SuperSpecialBallReleaseStrategy extends BallReleaseStrategy {
             };
             balls.push(scene.shootBall(paddleX, paddleY - 10, direction));
         }
+
         return balls;
     }
 }

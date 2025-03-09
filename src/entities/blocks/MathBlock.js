@@ -36,7 +36,9 @@ export default class MathBlock extends Block {
         // Determine texture based on difficulty if not specified
         let texture = config.texture;
         if (!texture) {
-            if (config.difficulty === 'year2' || config.difficulty === 'year3') {
+            if (config.difficulty === 'year3') {
+                texture = 'blockVeryHard';
+            } else if (config.difficulty === 'year2') {
                 texture = 'blockHard';
             } else if (config.difficulty === 'year1') {
                 texture = 'blockMedium';

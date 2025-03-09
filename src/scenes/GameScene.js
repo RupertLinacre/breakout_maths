@@ -115,16 +115,22 @@ export default class GameScene extends Phaser.Scene {
         g.generateTexture('blockEasy', 70, 30);
         g.clear();
 
-        // Year 1 blocks - red
-        g.fillStyle(0xe74c3c);
+        // Year 1 blocks - orange
+        g.fillStyle(0xf39c12);
         g.fillRect(0, 0, 70, 30);
         g.generateTexture('blockMedium', 70, 30);
         g.clear();
 
-        // Year 2 and Year 3 blocks - purple
-        g.fillStyle(0x9b59b6);
+        // Year 2 blocks - red
+        g.fillStyle(0xe74c3c);
         g.fillRect(0, 0, 70, 30);
         g.generateTexture('blockHard', 70, 30);
+        g.clear();
+
+        // Year 3 blocks - purple
+        g.fillStyle(0x9b59b6);
+        g.fillRect(0, 0, 70, 30);
+        g.generateTexture('blockVeryHard', 70, 30);
         g.clear();
 
         // Super special blocks - dark purple

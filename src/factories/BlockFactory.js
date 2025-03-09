@@ -26,16 +26,20 @@ export default class BlockFactory {
             options.ballReleaseStrategy = new SuperSpecialBallReleaseStrategy();
         } else {
             // For standard blocks, assign strategy based on difficulty
-            if (difficulty === 'year2' || difficulty === 'year3') {
-                // Hard blocks (purple) spray balls
+            if (difficulty === 'year3') {
+                // Year 3 blocks (purple) spray more balls
+                options.texture = 'blockVeryHard'; // Ensure texture is set
+                options.ballReleaseStrategy = new SuperSpecialBallReleaseStrategy(8); // More balls for higher difficulty
+            } else if (difficulty === 'year2') {
+                // Year 2 blocks (red) spray balls
                 options.texture = 'blockHard'; // Ensure texture is set
-                options.ballReleaseStrategy = new SuperSpecialBallReleaseStrategy();
+                options.ballReleaseStrategy = new SuperSpecialBallReleaseStrategy(5); // Standard spray amount
             } else if (difficulty === 'year1') {
-                // Medium blocks (red) shoot 3 balls
+                // Year 1 blocks (orange) shoot 3 balls
                 options.texture = 'blockMedium'; // Ensure texture is set
                 options.ballReleaseStrategy = new MultiBallReleaseStrategy();
             } else {
-                // Easy blocks (green) shoot 1 ball
+                // Reception blocks (green) shoot 1 ball
                 options.texture = 'blockEasy'; // Ensure texture is set
                 options.ballReleaseStrategy = new StandardBallReleaseStrategy();
             }
