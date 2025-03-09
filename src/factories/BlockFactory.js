@@ -1,5 +1,5 @@
 import MathBlock from '../entities/blocks/MathBlock.js';
-import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, SuperSpecialBallReleaseStrategy } from '../strategies/BallReleaseStrategy.js';
+import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, SuperSpecialBallReleaseStrategy, SprayBallReleaseStrategy } from '../strategies/BallReleaseStrategy.js';
 
 /**
  * Factory for creating different types of blocks
@@ -27,9 +27,9 @@ export default class BlockFactory {
         } else {
             // For standard blocks, assign strategy based on difficulty
             if (difficulty === 'year3') {
-                // Year 3 blocks (purple) spray more balls
+                // Year 3 blocks (purple) spray balls with delay
                 options.texture = 'blockVeryHard'; // Ensure texture is set
-                options.ballReleaseStrategy = new SuperSpecialBallReleaseStrategy(8); // More balls for higher difficulty
+                options.ballReleaseStrategy = new SprayBallReleaseStrategy(10, 200); // 10 balls with 200ms delay
             } else if (difficulty === 'year2') {
                 // Year 2 blocks (red) spray balls
                 options.texture = 'blockHard'; // Ensure texture is set
