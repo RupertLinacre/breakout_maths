@@ -23,7 +23,7 @@ export default class MathBlock extends Block {
 
         // Default options
         const defaults = {
-            difficulty: 'easy',
+            difficulty: 'reception',
             texture: null,
             ballReleaseStrategy: new StandardBallReleaseStrategy(),
             specialEffect: null,
@@ -36,9 +36,9 @@ export default class MathBlock extends Block {
         // Determine texture based on difficulty if not specified
         let texture = config.texture;
         if (!texture) {
-            if (config.difficulty === 'hard') {
+            if (config.difficulty === 'year2' || config.difficulty === 'year3') {
                 texture = 'blockHard';
-            } else if (config.difficulty === 'medium') {
+            } else if (config.difficulty === 'year1') {
                 texture = 'blockMedium';
             } else {
                 texture = 'blockEasy';
@@ -62,7 +62,7 @@ export default class MathBlock extends Block {
 
     /**
      * Set a math problem for this block
-     * @param {string} difficulty - The difficulty level ('easy', 'medium', or 'hard')
+     * @param {string} difficulty - The difficulty level ('reception', 'year1', 'year2', or 'year3')
      */
     setMathProblem(difficulty) {
         // Create the appropriate math problem based on difficulty using the new API

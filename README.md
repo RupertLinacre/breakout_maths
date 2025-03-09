@@ -87,9 +87,10 @@ The game uses two scenes that run simultaneously:
 
 The game uses the external `maths-game-problem-generator` package for generating math problems of varying difficulty:
 
-- **Easy Problems**: Simple addition and subtraction (1-10)
-- **Medium Problems**: Two-digit operations and simple multiplication/division
-- **Hard Problems**: More complex multiplication and two-digit operations
+- **Reception Problems**: Simple addition and subtraction (1-10)
+- **Year 1 Problems**: Two-digit operations and simple multiplication/division
+- **Year 2 Problems**: More complex multiplication and two-digit operations
+- **Year 3 Problems**: Advanced operations suitable for Year 3 students
 
 The package provides functions for creating problems, validating answers, and getting point values.
 
@@ -117,9 +118,9 @@ The game features a dynamic difficulty system:
 ## Game Features
 
 ### Block Types
-- **Green blocks**: Easy math problems (1 ball when solved)
-- **Red blocks**: Medium difficulty problems (3 balls when solved)
-- **Purple blocks**: Hard problems (spray of balls when solved)
+- **Green blocks**: Reception level math problems (1 ball when solved)
+- **Red blocks**: Year 1 level math problems (3 balls when solved)
+- **Purple blocks**: Year 2 and Year 3 level problems (spray of balls when solved)
 - **Dark purple blocks**: Super special blocks (balls spray everywhere)
 
 ### Progressive Difficulty
