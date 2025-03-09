@@ -78,8 +78,23 @@ export default class MathBlock extends Block {
         // Get the expression using the new API
         const expression = getProblemExpression(this.problem);
 
-        this.text = this.scene.add.text(this.x, this.y, expression, {
-            fontSize: '16px',
+        // Handle text that might be too big for blocks
+        let displayText = expression;
+        let fontSize = '16px';
+
+        // Check if expression is too long (more than 7 characters)
+        if (displayText.length > 7) {
+            // First try removing spaces
+            displayText = displayText.replace(/\s+/g, '');
+
+            // If it's still too long, reduce font size
+            if (displayText.length > 7) {
+                fontSize = '14px';
+            }
+        }
+
+        this.text = this.scene.add.text(this.x, this.y, displayText, {
+            fontSize: fontSize,
             color: '#fff',
             fontStyle: 'bold'
         }).setOrigin(0.5).setData('blockRef', this.sprite);
