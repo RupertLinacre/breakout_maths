@@ -1,8 +1,5 @@
 import Block from './Block.js';
-import MathProblem from '../../math/MathProblem.js';
-import EasyMath from '../../math/EasyMath.js';
-import MediumMath from '../../math/MediumMath.js';
-import HardMath from '../../math/HardMath.js';
+import { createMathProblem, getProblemExpression, getAnswer, validateAnswer, getPoints } from 'maths-game-problem-generator';
 import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, SuperSpecialBallReleaseStrategy } from '../../strategies/BallReleaseStrategy.js';
 import Helpers from '../../utils/helpers.js';
 
@@ -68,21 +65,18 @@ export default class MathBlock extends Block {
      * @param {string} difficulty - The difficulty level ('easy', 'medium', or 'hard')
      */
     setMathProblem(difficulty) {
-        // Create the appropriate math problem based on difficulty
-        if (difficulty === 'hard') {
-            this.problem = new HardMath();
-        } else if (difficulty === 'medium') {
-            this.problem = new MediumMath();
-        } else {
-            this.problem = new EasyMath();
-        }
+        // Create the appropriate math problem based on difficulty using the new API
+        this.problem = createMathProblem(difficulty);
 
         // Create text display for the problem
         if (this.text) {
             this.text.destroy();
         }
 
-        this.text = this.scene.add.text(this.x, this.y, this.problem.expression, {
+        // Get the expression using the new API
+        const expression = getProblemExpression(this.problem);
+
+        this.text = this.scene.add.text(this.x, this.y, expression, {
             fontSize: '16px',
             color: '#fff',
             fontStyle: 'bold'
@@ -98,7 +92,7 @@ export default class MathBlock extends Block {
      * @returns {boolean} Whether the answer is correct
      */
     checkAnswer(answer) {
-        return this.problem && this.problem.validate(answer);
+        return this.problem && validateAnswer(this.problem, answer);
     }
 
     /**
@@ -145,9 +139,9 @@ export default class MathBlock extends Block {
 
         super.destroy();
 
-        // Return score based on difficulty and multiplier
+        // Return score based on difficulty and multiplier using the new API
         return this.problem ?
-            this.problem.getPoints() * this.scoreMultiplier :
+            getPoints(this.problem) * this.scoreMultiplier :
             10 * this.scoreMultiplier;
     }
 

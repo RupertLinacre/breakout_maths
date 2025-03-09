@@ -34,11 +34,6 @@ The application is built with JavaScript using the Phaser 3 game framework and f
     │   └── blocks/          # Block implementations
     │       ├── Block.js     # Base block class
     │       └── MathBlock.js # Math problem blocks
-    ├── math/                # Math problem generation
-    │   ├── MathProblem.js   # Base math problem class
-    │   ├── EasyMath.js      # Easy difficulty math problems
-    │   ├── MediumMath.js    # Medium difficulty math problems
-    │   └── HardMath.js      # Hard difficulty math problems
     ├── strategies/          # Strategy pattern implementations
     │   └── BallReleaseStrategy.js # Different ball release behaviors
     ├── factories/           # Factory pattern implementations
@@ -90,12 +85,13 @@ The game uses two scenes that run simultaneously:
 
 ### Math Problem Generation
 
-The game features a robust system for generating math problems of varying difficulty:
+The game uses the external `maths-game-problem-generator` package for generating math problems of varying difficulty:
 
-- **MathProblem**: Base class defining common interfaces
-- **EasyMath**: Simple addition and subtraction (1-10)
-- **MediumMath**: Two-digit operations and simple multiplication/division
-- **HardMath**: More complex multiplication and two-digit operations
+- **Easy Problems**: Simple addition and subtraction (1-10)
+- **Medium Problems**: Two-digit operations and simple multiplication/division
+- **Hard Problems**: More complex multiplication and two-digit operations
+
+The package provides functions for creating problems, validating answers, and getting point values.
 
 ### Design Patterns
 
@@ -172,6 +168,7 @@ The game features a dynamic difficulty system:
 
 - [Phaser 3](https://phaser.io/phaser3) - HTML5 game framework
 - [Vite](https://vitejs.dev/) - Frontend build tool
+- [maths-game-problem-generator](https://github.com/your-username/maths-game-problem-generator) - Math problem generation library
 
 ## Architectural Strengths
 

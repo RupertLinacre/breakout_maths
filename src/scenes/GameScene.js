@@ -4,6 +4,7 @@ import Ball from '../entities/Ball.js';
 import Block from '../entities/blocks/Block.js';
 import MathBlock from '../entities/blocks/MathBlock.js';
 import BlockFactory from '../factories/BlockFactory.js';
+import { getPoints } from 'maths-game-problem-generator';
 
 /**
  * Main game scene for gameplay logic
@@ -421,7 +422,7 @@ export default class GameScene extends Phaser.Scene {
         }
 
         if (targetBlock) {
-            const points = targetBlock.problem.getPoints();
+            const points = getPoints(targetBlock.problem);
 
             // Use the block's ball release strategy
             targetBlock.releaseBalls();

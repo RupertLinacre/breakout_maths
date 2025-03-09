@@ -12,7 +12,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Maths Breakout Game</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -49,36 +48,8 @@
   </p>
   <div id="game-container"></div>
 
-  <!-- Load utility modules first -->
-  <script src="js/utils/helpers.js"></script>
-
-  <!-- Load base classes before derived classes -->
-  <script src="js/math/MathProblem.js"></script>
-  <script src="js/entities/blocks/Block.js"></script>
-
-  <!-- Load derived math classes -->
-  <script src="js/math/EasyMath.js"></script>
-  <script src="js/math/MediumMath.js"></script>
-  <script src="js/math/HardMath.js"></script>
-
-  <!-- Load strategies -->
-  <script src="js/strategies/BallReleaseStrategy.js"></script>
-
-  <!-- Load derived entity classes -->
-  <script src="js/entities/blocks/MathBlock.js"></script>
-  <script src="js/entities/blocks/SpecialBlock.js"></script>
-  <script src="js/entities/Paddle.js"></script>
-  <script src="js/entities/Ball.js"></script>
-
-  <!-- Load factory modules that depend on entities -->
-  <script src="js/factories/BlockFactory.js"></script>
-
-  <!-- Scene modules that depend on all other modules -->
-  <script src="js/scenes/UIScene.js"></script>
-  <script src="js/scenes/GameScene.js"></script>
-
-  <!-- Main game initialization -->
-  <script src="js/game.js"></script>
+  <!-- Load the main game script via ES module -->
+  <script type="module" src="/src/main.js"></script>
 </body>
 
 </html>
@@ -98,6 +69,9 @@
   },
   "devDependencies": {
     "vite": "^6.2.1"
+  },
+  "dependencies": {
+    "phaser": "^3.88.2"
   }
 }
 
@@ -119,7 +93,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Maths Breakout Game</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.55.2/phaser.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -156,36 +129,8 @@
   </p>
   <div id="game-container"></div>
 
-  <!-- Load utility modules first -->
-  <script src="js/utils/helpers.js"></script>
-
-  <!-- Load base classes before derived classes -->
-  <script src="js/math/MathProblem.js"></script>
-  <script src="js/entities/blocks/Block.js"></script>
-
-  <!-- Load derived math classes -->
-  <script src="js/math/EasyMath.js"></script>
-  <script src="js/math/MediumMath.js"></script>
-  <script src="js/math/HardMath.js"></script>
-
-  <!-- Load strategies -->
-  <script src="js/strategies/BallReleaseStrategy.js"></script>
-
-  <!-- Load derived entity classes -->
-  <script src="js/entities/blocks/MathBlock.js"></script>
-  <script src="js/entities/blocks/SpecialBlock.js"></script>
-  <script src="js/entities/Paddle.js"></script>
-  <script src="js/entities/Ball.js"></script>
-
-  <!-- Load factory modules that depend on entities -->
-  <script src="js/factories/BlockFactory.js"></script>
-
-  <!-- Scene modules that depend on all other modules -->
-  <script src="js/scenes/UIScene.js"></script>
-  <script src="js/scenes/GameScene.js"></script>
-
-  <!-- Main game initialization -->
-  <script src="js/game.js"></script>
+  <!-- Load the main game script via ES module -->
+  <script type="module" src="/src/main.js"></script>
 </body>
 
 </html>
@@ -205,6 +150,9 @@
   },
   "devDependencies": {
     "vite": "^6.2.1"
+  },
+  "dependencies": {
+    "phaser": "^3.88.2"
   }
 }
 
@@ -232,13 +180,10 @@ export default defineConfig({
 ---
 ./src/main.js
 ---
-/**
- * Math Breakout Game - Main Initialization
- *
- * This file initializes the Phaser game instance and configures the game.
- */
+import Phaser from 'phaser';
+import GameScene from './scenes/GameScene.js';
+import UIScene from './scenes/UIScene.js';
 
-// Game configuration
 const config = {
     type: Phaser.AUTO,
     width: 1250,
@@ -254,16 +199,22 @@ const config = {
     scene: [GameScene, UIScene]
 };
 
-// Start game
-const game = new Phaser.Game(config);
+new Phaser.Game(config);
 
 ---
 ./src/scenes/GameScene.js
 ---
+import Phaser from 'phaser';
+import Paddle from '../entities/Paddle.js';
+import Ball from '../entities/Ball.js';
+import Block from '../entities/blocks/Block.js';
+import MathBlock from '../entities/blocks/MathBlock.js';
+import BlockFactory from '../factories/BlockFactory.js';
+
 /**
  * Main game scene for gameplay logic
  */
-class GameScene extends Phaser.Scene {
+export default class GameScene extends Phaser.Scene {
     /**
      * Default block difficulty spawn rates
      * These constants control the base probability of each difficulty level
@@ -309,6 +260,9 @@ class GameScene extends Phaser.Scene {
     preload() {
         // Generate textures on the fly
         this.generateTextures();
+
+        // Add a console log to verify scene loading
+        console.log("Game Scene Loaded");
     }
 
     /**
@@ -838,10 +792,12 @@ class GameScene extends Phaser.Scene {
 ---
 ./src/scenes/UIScene.js
 ---
+import Phaser from 'phaser';
+
 /**
  * Scene for handling UI elements
  */
-class UIScene extends Phaser.Scene {
+export default class UIScene extends Phaser.Scene {
     /**
      * Create a new UI scene
      */
@@ -866,6 +822,9 @@ class UIScene extends Phaser.Scene {
         this.createAnswerInput();
         this.scoreText = this.add.text(20, gameHeight - 70, 'Score: 0', { fontSize: '24px' });
         this.messageText = this.add.text(gameWidth / 2, gameHeight - 40, '', { fontSize: '24px' }).setOrigin(0.5);
+
+        // Add a console log to verify scene loading
+        console.log("UI Scene Loaded");
 
         // Setup input handling for answer submission
         this.input.keyboard.on('keydown-ENTER', () => {
@@ -1073,10 +1032,12 @@ class UIScene extends Phaser.Scene {
 ---
 ./src/strategies/BallReleaseStrategy.js
 ---
+import Phaser from 'phaser';
+
 /**
  * Base class for ball release strategies
  */
-class BallReleaseStrategy {
+export class BallReleaseStrategy {
     /**
      * Execute the ball release strategy
      * @param {Phaser.Scene} scene - The game scene
@@ -1096,7 +1057,7 @@ class BallReleaseStrategy {
  * Strategy for releasing a single ball
  * @extends BallReleaseStrategy
  */
-class StandardBallReleaseStrategy extends BallReleaseStrategy {
+export class StandardBallReleaseStrategy extends BallReleaseStrategy {
     /**
      * Execute the standard ball release strategy (single ball)
      * @param {Phaser.Scene} scene - The game scene
@@ -1116,7 +1077,7 @@ class StandardBallReleaseStrategy extends BallReleaseStrategy {
  * Strategy for releasing multiple balls
  * @extends BallReleaseStrategy
  */
-class MultiBallReleaseStrategy extends BallReleaseStrategy {
+export class MultiBallReleaseStrategy extends BallReleaseStrategy {
     /**
      * Execute the multi-ball release strategy (three balls)
      * @param {Phaser.Scene} scene - The game scene
@@ -1140,7 +1101,7 @@ class MultiBallReleaseStrategy extends BallReleaseStrategy {
  * Strategy for releasing balls in all directions
  * @extends BallReleaseStrategy
  */
-class SuperSpecialBallReleaseStrategy extends BallReleaseStrategy {
+export class SuperSpecialBallReleaseStrategy extends BallReleaseStrategy {
     /**
      * Execute the super special ball release strategy (spray upwards between 10° and 170°)
      * @param {Phaser.Scene} scene - The game scene
@@ -1192,18 +1153,21 @@ const Helpers = {
     getBlockColumn: function (x) {
         return Math.floor((x - 65) / 74);
     },
-
-
 };
+
+export default Helpers;
 
 ---
 ./src/math/EasyMath.js
 ---
+import MathProblem from './MathProblem.js';
+import Helpers from '../utils/helpers.js';
+
 /**
  * Class for easy math problems (addition and subtraction)
  * @extends MathProblem
  */
-class EasyMath extends MathProblem {
+export default class EasyMath extends MathProblem {
     /**
      * Create a new easy math problem
      */
@@ -1234,11 +1198,14 @@ class EasyMath extends MathProblem {
 ---
 ./src/math/HardMath.js
 ---
+import MathProblem from './MathProblem.js';
+import Helpers from '../utils/helpers.js';
+
 /**
  * Class for hard math problems (multiplication and 2-digit operations)
  * @extends MathProblem
  */
-class HardMath extends MathProblem {
+export default class HardMath extends MathProblem {
     /**
      * Create a new hard math problem
      */
@@ -1280,7 +1247,7 @@ class HardMath extends MathProblem {
 /**
  * Base class for math problems
  */
-class MathProblem {
+export default class MathProblem {
     /**
      * Create a new math problem
      * @param {string} difficulty - The difficulty level ('easy' or 'hard')
@@ -1330,12 +1297,17 @@ class MathProblem {
      * @returns {MathProblem} A new math problem instance
      */
     static create(difficulty) {
+        // We'll use dynamic imports to avoid circular dependencies
         if (difficulty === 'hard') {
-            return new HardMath();
+            // We'll handle this in MathBlock.js instead
+            console.log("Creating hard math problem");
+            return null; // This will be handled in MathBlock.js
         } else if (difficulty === 'medium') {
-            return new MediumMath();
+            console.log("Creating medium math problem");
+            return null; // This will be handled in MathBlock.js
         } else {
-            return new EasyMath();
+            console.log("Creating easy math problem");
+            return null; // This will be handled in MathBlock.js
         }
     }
 }
@@ -1343,11 +1315,14 @@ class MathProblem {
 ---
 ./src/math/MediumMath.js
 ---
+import MathProblem from './MathProblem.js';
+import Helpers from '../utils/helpers.js';
+
 /**
  * Medium difficulty math problems
  * @extends MathProblem
  */
-class MediumMath extends MathProblem {
+export default class MediumMath extends MathProblem {
     /**
      * Create a new medium difficulty math problem
      */
@@ -1401,10 +1376,13 @@ class MediumMath extends MathProblem {
 ---
 ./src/factories/BlockFactory.js
 ---
+import MathBlock from '../entities/blocks/MathBlock.js';
+import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, SuperSpecialBallReleaseStrategy } from '../strategies/BallReleaseStrategy.js';
+
 /**
  * Factory for creating different types of blocks
  */
-class BlockFactory {
+export default class BlockFactory {
     /**
      * Create a math block with specific properties
      * @param {Phaser.Scene} scene - The scene this block belongs to
@@ -1451,7 +1429,7 @@ class BlockFactory {
 /**
  * Ball class for projectiles
  */
-class Ball {
+export default class Ball {
     /**
      * Create a new ball
      * @param {Phaser.Scene} scene - The scene this ball belongs to
@@ -1536,7 +1514,7 @@ class Ball {
 /**
  * Paddle (player-controlled) class
  */
-class Paddle {
+export default class Paddle {
     /**
      * Create a new paddle
      * @param {Phaser.Scene} scene - The scene this paddle belongs to
@@ -1611,10 +1589,12 @@ class Paddle {
 ---
 ./src/entities/blocks/Block.js
 ---
+import Helpers from '../../utils/helpers.js';
+
 /**
  * Base class for all block types
  */
-class Block {
+export default class Block {
     /**
      * Create a new block
      * @param {Phaser.Scene} scene - The scene this block belongs to
@@ -1669,11 +1649,19 @@ class Block {
 ---
 ./src/entities/blocks/MathBlock.js
 ---
+import Block from './Block.js';
+import MathProblem from '../../math/MathProblem.js';
+import EasyMath from '../../math/EasyMath.js';
+import MediumMath from '../../math/MediumMath.js';
+import HardMath from '../../math/HardMath.js';
+import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, SuperSpecialBallReleaseStrategy } from '../../strategies/BallReleaseStrategy.js';
+import Helpers from '../../utils/helpers.js';
+
 /**
  * Block with a math problem
  * @extends Block
  */
-class MathBlock extends Block {
+export default class MathBlock extends Block {
     /**
      * Create a new math block
      * @param {Phaser.Scene} scene - The scene this block belongs to
@@ -1728,10 +1716,17 @@ class MathBlock extends Block {
 
     /**
      * Set a math problem for this block
-     * @param {string} difficulty - Difficulty level
+     * @param {string} difficulty - The difficulty level ('easy', 'medium', or 'hard')
      */
     setMathProblem(difficulty) {
-        this.problem = MathProblem.create(difficulty);
+        // Create the appropriate math problem based on difficulty
+        if (difficulty === 'hard') {
+            this.problem = new HardMath();
+        } else if (difficulty === 'medium') {
+            this.problem = new MediumMath();
+        } else {
+            this.problem = new EasyMath();
+        }
 
         // Create text display for the problem
         if (this.text) {

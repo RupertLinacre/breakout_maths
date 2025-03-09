@@ -12,6 +12,7 @@
     "vite": "^6.2.1"
   },
   "dependencies": {
+    "maths-game-problem-generator": "file:../maths-game-problem-generator",
     "phaser": "^3.88.2"
   }
 }
