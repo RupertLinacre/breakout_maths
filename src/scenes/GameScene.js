@@ -16,10 +16,10 @@ export default class GameScene extends Phaser.Scene {
      * and are used for initialization and resets
      */
     static DEFAULT_SPAWN_RATES = {
-        RECEPTION: 0.60,  // 60% chance for reception blocks (was easy)
-        YEAR1: 0.30,      // 30% chance for year1 blocks (was medium)
-        YEAR2: 0.07,      // 7% chance for year2 blocks (was part of hard)
-        YEAR3: 0.03       // 3% chance for year3 blocks (was part of hard)
+        RECEPTION: 0.50,  // 60% chance for reception blocks (was easy)
+        YEAR1: 0.25,      // 30% chance for year1 blocks (was medium)
+        YEAR2: 0.15,      // 7% chance for year2 blocks (was part of hard)
+        YEAR3: 0.10       // 3% chance for year3 blocks (was part of hard)
     };
 
     /**
