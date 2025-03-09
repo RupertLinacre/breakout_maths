@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maths Breakout Game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    #game-container {
+      margin: 0 auto;
+      width: 1250px;
+    }
+  </style>
+  <script type="module" crossorigin src="/breakout_maths/assets/index-DPwTJBZI.js"></script>
+</head>
+
+<body>
+  <h1>Maths Breakout Game</h1>
+  <p>Use LEFT/RIGHT to move. Type answers and hit ENTER to shoot at blocks.</p>
+  <p>
+    <span style="color: #2ecc71;">Green blocks</span>: easy problems (1 ball).
+    <span style="color: #e74c3c;">Red blocks</span>: medium problems (3 balls).
+    <span style="color: #9b59b6;">Purple blocks</span>: hard problems (spray balls).
+    <span style="color: #8e44ad;">Dark purple blocks</span>: super special blocks (spray balls everywhere!)
+  </p>
+  <div id="game-container"></div>
+
+  <!-- Load the main game script via ES module -->
+</body>
+
+</html>
