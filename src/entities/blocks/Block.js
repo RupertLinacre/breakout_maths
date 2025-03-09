@@ -1,3 +1,5 @@
+import Helpers from '../../utils/helpers.js';
+
 /**
  * Base class for all block types
  */

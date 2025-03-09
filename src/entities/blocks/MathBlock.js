@@ -4,6 +4,7 @@ import EasyMath from '../../math/EasyMath.js';
 import MediumMath from '../../math/MediumMath.js';
 import HardMath from '../../math/HardMath.js';
 import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, SuperSpecialBallReleaseStrategy } from '../../strategies/BallReleaseStrategy.js';
+import Helpers from '../../utils/helpers.js';
 
 /**
  * Block with a math problem
