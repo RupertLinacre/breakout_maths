@@ -1,7 +1,7 @@
 /**
  * Paddle (player-controlled) class
  */
-class Paddle {
+export default class Paddle {
     /**
      * Create a new paddle
      * @param {Phaser.Scene} scene - The scene this paddle belongs to

@@ -22,6 +22,6 @@ const Helpers = {
     getBlockColumn: function (x) {
         return Math.floor((x - 65) / 74);
     },
-
-
 };
+
+export default Helpers;

@@ -1,7 +1,9 @@
+import Phaser from 'phaser';
+
 /**
  * Scene for handling UI elements
  */
-class UIScene extends Phaser.Scene {
+export default class UIScene extends Phaser.Scene {
     /**
      * Create a new UI scene
      */
@@ -27,6 +29,14 @@ class UIScene extends Phaser.Scene {
         this.scoreText = this.add.text(20, gameHeight - 70, 'Score: 0', { fontSize: '24px' });
         this.messageText = this.add.text(gameWidth / 2, gameHeight - 40, '', { fontSize: '24px' }).setOrigin(0.5);
 
+        // Make sure cursor is visible initially
+        if (this.cursor) {
+            this.cursor.visible = true;
+        }
+
+        // Add a console log to verify scene loading
+        console.log("UI Scene Loaded");
+
         // Setup input handling for answer submission
         this.input.keyboard.on('keydown-ENTER', () => {
             // If victory screen is showing, handle restart
@@ -40,13 +50,23 @@ class UIScene extends Phaser.Scene {
 
         // Setup input handling for typing answers
         this.input.keyboard.on('keydown', e => {
-            if (e.keyCode >= 48 && e.keyCode <= 57 || e.keyCode >= 96 && e.keyCode <= 105) {
+            // Only process input when not in victory screen
+            if (this.victoryElements) return;
+
+            // Handle numeric input (both number row and numpad)
+            if ((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 96 && e.keyCode <= 105)) {
                 // Numbers
                 this.answerText.text += e.key;
                 this.updateCursorPosition();
             } else if (e.keyCode === 8) {
                 // Backspace
-                this.answerText.text = this.answerText.text.slice(0, -1);
+                if (this.answerText.text.length > 0) {
+                    this.answerText.text = this.answerText.text.slice(0, -1);
+                    this.updateCursorPosition();
+                }
+            } else if (e.keyCode === 46) {
+                // Clear on Delete key
+                this.answerText.text = '';
                 this.updateCursorPosition();
             }
         });
@@ -70,7 +90,7 @@ class UIScene extends Phaser.Scene {
             color: '#333',
             fixedWidth: 100,
             padding: { x: 10, y: 5 },
-            align: 'center'
+            align: 'left'
         }).setOrigin(0.5);
 
         // Add cursor effect and input box styling
@@ -83,16 +103,23 @@ class UIScene extends Phaser.Scene {
 
         // Create blinking cursor
         this.cursor = this.add.text(
-            this.answerText.x + (this.answerText.text.length * 7),
+            this.answerText.x - (this.answerText.width / 2) + 10,
             this.answerText.y,
             '|',
-            { fontSize: '24px', color: '#333' }
+            { fontSize: '24px', color: '#000000', fontStyle: 'bold' }
         ).setOrigin(0.5);
+
+        // Call updateCursorPosition to set initial position correctly
+        this.updateCursorPosition();
 
         // Blink cursor
         this.time.addEvent({
             delay: 500,
-            callback: () => { this.cursor.visible = !this.cursor.visible; },
+            callback: () => {
+                if (this.cursor) {
+                    this.cursor.visible = !this.cursor.visible;
+                }
+            },
             loop: true
         });
 
@@ -113,8 +140,26 @@ class UIScene extends Phaser.Scene {
      * Update cursor position based on text length
      */
     updateCursorPosition() {
-        const textWidth = this.answerText.text.length * 12;
-        this.cursor.x = this.answerText.x - (this.answerText.width / 2) + textWidth + 12;
+        // Get the padding value
+        const padding = 10;
+
+        // Calculate cursor position based on text length
+        // For empty text, position at the start of the input box
+        if (this.answerText.text.length === 0) {
+            this.cursor.x = this.answerText.x - (this.answerText.width / 2) + padding;
+        } else {
+            // For non-empty text, position after the last character
+            // Use a fixed width per character for simplicity and reliability
+            const charWidth = 14; // Approximate width of a character in the current font
+            const textWidth = this.answerText.text.length * charWidth;
+            this.cursor.x = this.answerText.x - (this.answerText.width / 2) + padding + textWidth;
+        }
+
+        // Ensure cursor is vertically aligned with text
+        this.cursor.y = this.answerText.y;
+
+        // Make sure cursor is visible
+        this.cursor.visible = true;
     }
 
     /**
@@ -126,6 +171,9 @@ class UIScene extends Phaser.Scene {
         // Always clear input field and update cursor on Enter
         this.answerText.text = '';
         this.updateCursorPosition();
+
+        // Ensure cursor is visible after submission
+        this.cursor.visible = true;
 
         if (isNaN(answer)) return;
 

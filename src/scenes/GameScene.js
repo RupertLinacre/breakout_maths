@@ -1,17 +1,26 @@
+import Phaser from 'phaser';
+import Paddle from '../entities/Paddle.js';
+import Ball from '../entities/Ball.js';
+import Block from '../entities/blocks/Block.js';
+import MathBlock from '../entities/blocks/MathBlock.js';
+import BlockFactory from '../factories/BlockFactory.js';
+import { getPoints } from 'maths-game-problem-generator';
+
 /**
  * Main game scene for gameplay logic
  */
-class GameScene extends Phaser.Scene {
+export default class GameScene extends Phaser.Scene {
     /**
      * Default block difficulty spawn rates
      * These constants control the base probability of each difficulty level
      * and are used for initialization and resets
      */
     static DEFAULT_SPAWN_RATES = {
-        EASY: 0.60,    // 60% chance for easy blocks
-        MEDIUM: 0.30,  // 30% chance for medium blocks
-        HARD: 0.10,    // 10% chance for hard blocks
-        SUPER: 0.05    // 5% chance for super special blocks (independent of difficulty)
+        RECEPTION: 0.60,  // 60% chance for reception blocks (was easy)
+        YEAR1: 0.30,      // 30% chance for year1 blocks (was medium)
+        YEAR2: 0.07,      // 7% chance for year2 blocks (was part of hard)
+        YEAR3: 0.03,      // 3% chance for year3 blocks (was part of hard)
+        SUPER: 0.05       // 5% chance for super special blocks (independent of difficulty)
     };
 
     /**
@@ -20,9 +29,10 @@ class GameScene extends Phaser.Scene {
      */
     static BLOCK_SPAWN_RATES = {
         // Initialize from DEFAULT_SPAWN_RATES instead of duplicating values
-        EASY: 0,    // Will be set in constructor
-        MEDIUM: 0,
-        HARD: 0,
+        RECEPTION: 0,  // Will be set in constructor
+        YEAR1: 0,
+        YEAR2: 0,
+        YEAR3: 0,
         SUPER: 0
     };
 
@@ -47,63 +57,88 @@ class GameScene extends Phaser.Scene {
     preload() {
         // Generate textures on the fly
         this.generateTextures();
+
+        // Add a console log to verify scene loading
+        console.log("Game Scene Loaded");
     }
 
     /**
-     * Generate game textures
+     * Generate textures for blocks and other game objects
      */
     generateTextures() {
-        // Create paddle graphic
-        let g = this.add.graphics();
+        // Create a graphics object for generating textures
+        const g = this.add.graphics();
+
+        // Create paddle graphic with rounded corners using standard drawing methods
         g.fillStyle(0x3498db);
+
+        // Draw a rounded rectangle manually
+        const width = 100;
+        const height = 20;
+        const radius = 10;
+
         g.beginPath();
-        g.moveTo(0, 0);
-        g.lineTo(80, 0);
-        g.lineTo(64, 20);
-        g.lineTo(16, 20);
+        // Start from top-right, moving counter-clockwise
+        g.moveTo(width - radius, 0);
+        // Top-right corner
+        g.lineTo(radius, 0);
+        g.arc(radius, radius, radius, -Math.PI / 2, Math.PI, true);
+        // Bottom-left corner
+        g.lineTo(0, height - radius);
+        g.arc(radius, height - radius, radius, Math.PI, Math.PI / 2, true);
+        // Bottom-right corner
+        g.lineTo(width - radius, height);
+        g.arc(width - radius, height - radius, radius, Math.PI / 2, 0, true);
+        // Top-right corner
+        g.lineTo(width, radius);
+        g.arc(width - radius, radius, radius, 0, -Math.PI / 2, true);
+        g.closePath();
+
+        g.fillPath();
+        g.generateTexture('paddle', width, height);
+        g.clear();
+
+        // Create ball graphic using standard drawing methods
+        g.fillStyle(0xffffff);
+        g.beginPath();
+        g.arc(10, 10, 10, 0, Math.PI * 2);
         g.closePath();
         g.fillPath();
-        g.generateTexture('paddle', 80, 20);
+        g.generateTexture('ball', 20, 20);
         g.clear();
 
-        // Create ball
-        g.fillStyle(0x2ecc71);
-        g.fillCircle(9, 9, 9);
-        g.generateTexture('ball', 18, 18);
-        g.clear();
+        // Generate block textures with different colors for different difficulties
 
-        // Create blocks - make them wider (70px instead of 60px)
-        // Easy blocks - green
+        // Reception blocks - green
         g.fillStyle(0x2ecc71);
         g.fillRect(0, 0, 70, 30);
         g.generateTexture('blockEasy', 70, 30);
         g.clear();
 
-        // Medium blocks - red
-        g.fillStyle(0xe74c3c);
+        // Year 1 blocks - orange
+        g.fillStyle(0xf39c12);
         g.fillRect(0, 0, 70, 30);
         g.generateTexture('blockMedium', 70, 30);
         g.clear();
 
-        // Hard blocks - purple
-        g.fillStyle(0x9b59b6);
+        // Year 2 blocks - red
+        g.fillStyle(0xe74c3c);
         g.fillRect(0, 0, 70, 30);
         g.generateTexture('blockHard', 70, 30);
         g.clear();
 
-        // Create super special block - darker purple
+        // Year 3 blocks - purple
+        g.fillStyle(0x9b59b6);
+        g.fillRect(0, 0, 70, 30);
+        g.generateTexture('blockVeryHard', 70, 30);
+        g.clear();
+
+        // Super special blocks - dark purple
         g.fillStyle(0x8e44ad);
         g.fillRect(0, 0, 70, 30);
-
-        // Add some decoration to make it look special
-        // g.fillStyle(0xf1c40f); // Yellow decorations
-
-        // // Draw decorative circles instead of stars
-        // g.fillCircle(15, 15, 5);
-        // g.fillCircle(35, 15, 5);
-        // g.fillCircle(55, 15, 5);
-
         g.generateTexture('blockSuper', 70, 30);
+        g.clear();
+
         g.destroy();
     }
 
@@ -221,12 +256,14 @@ class GameScene extends Phaser.Scene {
             const rand = Math.random();
             const rates = GameScene.BLOCK_SPAWN_RATES;
 
-            if (rand < rates.EASY) {
-                difficulty = 'easy';
-            } else if (rand < rates.EASY + rates.MEDIUM) {
-                difficulty = 'medium';
+            if (rand < rates.RECEPTION) {
+                difficulty = 'reception';
+            } else if (rand < rates.RECEPTION + rates.YEAR1) {
+                difficulty = 'year1';
+            } else if (rand < rates.RECEPTION + rates.YEAR1 + rates.YEAR2) {
+                difficulty = 'year2';
             } else {
-                difficulty = 'hard';
+                difficulty = 'year3';
             }
         }
 
@@ -411,7 +448,7 @@ class GameScene extends Phaser.Scene {
         }
 
         if (targetBlock) {
-            const points = targetBlock.problem.getPoints();
+            const points = getPoints(targetBlock.problem);
 
             // Use the block's ball release strategy
             targetBlock.releaseBalls();
@@ -504,71 +541,52 @@ class GameScene extends Phaser.Scene {
     }
 
     /**
-     * Adjust the difficulty spawn rates
+     * Adjust difficulty rates for block spawning
      * @param {object} newRates - Object with new rates for each difficulty
      * @example
-     * // Make the game harder
-     * adjustDifficultyRates({ EASY: 0.4, MEDIUM: 0.4, HARD: 0.2, SUPER: 0.1 });
+     * adjustDifficultyRates({ RECEPTION: 0.4, YEAR1: 0.4, YEAR2: 0.15, YEAR3: 0.05, SUPER: 0.1 });
      */
     adjustDifficultyRates(newRates) {
-        // Update only the provided rates
-        if (newRates.EASY !== undefined) GameScene.BLOCK_SPAWN_RATES.EASY = newRates.EASY;
-        if (newRates.MEDIUM !== undefined) GameScene.BLOCK_SPAWN_RATES.MEDIUM = newRates.MEDIUM;
-        if (newRates.HARD !== undefined) GameScene.BLOCK_SPAWN_RATES.HARD = newRates.HARD;
+        // Update each rate that was provided
+        if (newRates.RECEPTION !== undefined) GameScene.BLOCK_SPAWN_RATES.RECEPTION = newRates.RECEPTION;
+        if (newRates.YEAR1 !== undefined) GameScene.BLOCK_SPAWN_RATES.YEAR1 = newRates.YEAR1;
+        if (newRates.YEAR2 !== undefined) GameScene.BLOCK_SPAWN_RATES.YEAR2 = newRates.YEAR2;
+        if (newRates.YEAR3 !== undefined) GameScene.BLOCK_SPAWN_RATES.YEAR3 = newRates.YEAR3;
         if (newRates.SUPER !== undefined) GameScene.BLOCK_SPAWN_RATES.SUPER = newRates.SUPER;
 
-        // Ensure probabilities sum to 1 for difficulties (not including SUPER which is independent)
-        const total = GameScene.BLOCK_SPAWN_RATES.EASY +
-            GameScene.BLOCK_SPAWN_RATES.MEDIUM +
-            GameScene.BLOCK_SPAWN_RATES.HARD;
-
-        if (total !== 1) {
-            // Normalize the rates
-            const factor = 1 / total;
-            GameScene.BLOCK_SPAWN_RATES.EASY *= factor;
-            GameScene.BLOCK_SPAWN_RATES.MEDIUM *= factor;
-            GameScene.BLOCK_SPAWN_RATES.HARD *= factor;
-
-            console.log('Difficulty rates normalized to sum to 1:', GameScene.BLOCK_SPAWN_RATES);
-        }
+        // Update math problems to reflect new rates
+        this.updateMathProblems();
     }
 
     /**
-     * Increase game difficulty based on score or time
-     * This makes the game progressively harder as the player advances
+     * Increase game difficulty by adjusting spawn rates
      */
     increaseDifficulty() {
-        if (!this.gameInProgress) return;
+        // Gradually shift probabilities toward harder problems
+        const currentRates = GameScene.BLOCK_SPAWN_RATES;
 
-        // Get current rates
-        const rates = GameScene.BLOCK_SPAWN_RATES;
-
-        // Gradually decrease easy blocks and increase medium/hard blocks
-        // This is a simple linear progression - could be made more sophisticated
+        // Calculate new rates with more emphasis on harder problems
         const newRates = {
-            EASY: Math.max(0.3, rates.EASY - 0.05),  // Decrease easy blocks but keep at least 30%
-            MEDIUM: Math.min(0.5, rates.MEDIUM + 0.03),  // Increase medium blocks up to 50%
-            HARD: Math.min(0.3, rates.HARD + 0.02),  // Increase hard blocks up to 30%
-            SUPER: Math.min(0.15, rates.SUPER + 0.01)  // Slightly increase super blocks up to 15%
+            RECEPTION: Math.max(0.1, currentRates.RECEPTION - 0.1),
+            YEAR1: Math.min(0.5, currentRates.YEAR1 + 0.05),
+            YEAR2: Math.min(0.3, currentRates.YEAR2 + 0.03),
+            YEAR3: Math.min(0.2, currentRates.YEAR3 + 0.02),
+            SUPER: Math.min(0.15, currentRates.SUPER + 0.01)
         };
 
+        // Apply the new rates
         this.adjustDifficultyRates(newRates);
-
-        console.log('Difficulty increased:', GameScene.BLOCK_SPAWN_RATES);
     }
 
     /**
-     * Reset difficulty to initial values
-     * Call this when starting a new game
+     * Reset difficulty to default values
      */
     resetDifficulty() {
-        // Reset to initial values from DEFAULT_SPAWN_RATES
-        const defaults = GameScene.DEFAULT_SPAWN_RATES;
-        GameScene.BLOCK_SPAWN_RATES.EASY = defaults.EASY;
-        GameScene.BLOCK_SPAWN_RATES.MEDIUM = defaults.MEDIUM;
-        GameScene.BLOCK_SPAWN_RATES.HARD = defaults.HARD;
-        GameScene.BLOCK_SPAWN_RATES.SUPER = defaults.SUPER;
-
-        console.log('Difficulty reset to initial values:', GameScene.BLOCK_SPAWN_RATES);
+        // Reset to default spawn rates
+        GameScene.BLOCK_SPAWN_RATES.RECEPTION = GameScene.DEFAULT_SPAWN_RATES.RECEPTION;
+        GameScene.BLOCK_SPAWN_RATES.YEAR1 = GameScene.DEFAULT_SPAWN_RATES.YEAR1;
+        GameScene.BLOCK_SPAWN_RATES.YEAR2 = GameScene.DEFAULT_SPAWN_RATES.YEAR2;
+        GameScene.BLOCK_SPAWN_RATES.YEAR3 = GameScene.DEFAULT_SPAWN_RATES.YEAR3;
+        GameScene.BLOCK_SPAWN_RATES.SUPER = GameScene.DEFAULT_SPAWN_RATES.SUPER;
     }
 }

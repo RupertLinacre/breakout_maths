@@ -1,8 +1,13 @@
+import Block from './Block.js';
+import { createMathProblem, getProblemExpression, getAnswer, validateAnswer, getPoints } from 'maths-game-problem-generator';
+import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, ArcBallReleaseStrategy } from '../../strategies/BallReleaseStrategy.js';
+import Helpers from '../../utils/helpers.js';
+
 /**
  * Block with a math problem
  * @extends Block
  */
-class MathBlock extends Block {
+export default class MathBlock extends Block {
     /**
      * Create a new math block
      * @param {Phaser.Scene} scene - The scene this block belongs to
@@ -18,7 +23,7 @@ class MathBlock extends Block {
 
         // Default options
         const defaults = {
-            difficulty: 'easy',
+            difficulty: 'reception',
             texture: null,
             ballReleaseStrategy: new StandardBallReleaseStrategy(),
             specialEffect: null,
@@ -31,9 +36,11 @@ class MathBlock extends Block {
         // Determine texture based on difficulty if not specified
         let texture = config.texture;
         if (!texture) {
-            if (config.difficulty === 'hard') {
+            if (config.difficulty === 'year3') {
+                texture = 'blockVeryHard';
+            } else if (config.difficulty === 'year2') {
                 texture = 'blockHard';
-            } else if (config.difficulty === 'medium') {
+            } else if (config.difficulty === 'year1') {
                 texture = 'blockMedium';
             } else {
                 texture = 'blockEasy';
@@ -57,17 +64,21 @@ class MathBlock extends Block {
 
     /**
      * Set a math problem for this block
-     * @param {string} difficulty - Difficulty level
+     * @param {string} difficulty - The difficulty level ('reception', 'year1', 'year2', or 'year3')
      */
     setMathProblem(difficulty) {
-        this.problem = MathProblem.create(difficulty);
+        // Create the appropriate math problem based on difficulty using the new API
+        this.problem = createMathProblem(difficulty);
 
         // Create text display for the problem
         if (this.text) {
             this.text.destroy();
         }
 
-        this.text = this.scene.add.text(this.x, this.y, this.problem.expression, {
+        // Get the expression using the new API
+        const expression = getProblemExpression(this.problem);
+
+        this.text = this.scene.add.text(this.x, this.y, expression, {
             fontSize: '16px',
             color: '#fff',
             fontStyle: 'bold'
@@ -83,7 +94,7 @@ class MathBlock extends Block {
      * @returns {boolean} Whether the answer is correct
      */
     checkAnswer(answer) {
-        return this.problem && this.problem.validate(answer);
+        return this.problem && validateAnswer(this.problem, answer);
     }
 
     /**
@@ -130,9 +141,9 @@ class MathBlock extends Block {
 
         super.destroy();
 
-        // Return score based on difficulty and multiplier
+        // Return score based on difficulty and multiplier using the new API
         return this.problem ?
-            this.problem.getPoints() * this.scoreMultiplier :
+            getPoints(this.problem) * this.scoreMultiplier :
             10 * this.scoreMultiplier;
     }
 

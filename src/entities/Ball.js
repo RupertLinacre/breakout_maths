@@ -1,7 +1,7 @@
 /**
  * Ball class for projectiles
  */
-class Ball {
+export default class Ball {
     /**
      * Create a new ball
      * @param {Phaser.Scene} scene - The scene this ball belongs to
