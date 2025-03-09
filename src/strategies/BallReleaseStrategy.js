@@ -85,12 +85,11 @@ export class MultiBallReleaseStrategy extends BallReleaseStrategy {
 }
 
 /**
- * Strategy for releasing balls in all directions
- * @extends BallReleaseStrategy
+ * Strategy for releasing balls in an arc pattern
  */
 export class ArcBallReleaseStrategy extends BallReleaseStrategy {
     /**
-     * Create a new SuperSpecialBallReleaseStrategy
+     * Create a new ArcBallReleaseStrategy
      * @param {number} ballCount - Number of balls to release (default: 9)
      */
     constructor(ballCount = 9) {
@@ -99,7 +98,7 @@ export class ArcBallReleaseStrategy extends BallReleaseStrategy {
     }
 
     /**
-     * Execute the super special ball release strategy (spray in multiple directions)
+     * Execute the arc ball release strategy (spray in multiple directions)
      * @param {Phaser.Scene} scene - The game scene
      * @param {number} paddleX - Paddle X position
      * @param {number} paddleY - Paddle Y position

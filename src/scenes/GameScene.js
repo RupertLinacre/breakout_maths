@@ -19,8 +19,7 @@ export default class GameScene extends Phaser.Scene {
         RECEPTION: 0.60,  // 60% chance for reception blocks (was easy)
         YEAR1: 0.30,      // 30% chance for year1 blocks (was medium)
         YEAR2: 0.07,      // 7% chance for year2 blocks (was part of hard)
-        YEAR3: 0.03,      // 3% chance for year3 blocks (was part of hard)
-        SUPER: 0.05       // 5% chance for super special blocks (independent of difficulty)
+        YEAR3: 0.03       // 3% chance for year3 blocks (was part of hard)
     };
 
     /**
@@ -32,8 +31,7 @@ export default class GameScene extends Phaser.Scene {
         RECEPTION: 0,  // Will be set in constructor
         YEAR1: 0,
         YEAR2: 0,
-        YEAR3: 0,
-        SUPER: 0
+        YEAR3: 0
     };
 
     /**
@@ -131,12 +129,6 @@ export default class GameScene extends Phaser.Scene {
         g.fillStyle(0x9b59b6);
         g.fillRect(0, 0, 70, 30);
         g.generateTexture('blockVeryHard', 70, 30);
-        g.clear();
-
-        // Super special blocks - dark purple
-        g.fillStyle(0x8e44ad);
-        g.fillRect(0, 0, 70, 30);
-        g.generateTexture('blockSuper', 70, 30);
         g.clear();
 
         g.destroy();
@@ -267,15 +259,11 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
-        // Determine if this should be a super special block
-        // Use the SUPER spawn rate constant
-        let blockType = Math.random() < GameScene.BLOCK_SPAWN_RATES.SUPER ? 'super' : 'standard';
-
         // Destroy the regular block
         lowestBlock.destroy();
 
         // Create a math block using the factory
-        const mathBlock = BlockFactory.createMathBlock(this, x, y, blockType, difficulty);
+        const mathBlock = BlockFactory.createMathBlock(this, x, y, difficulty);
 
         // Update the grid reference
         const row = Math.floor((y - 50) / 40);
@@ -544,7 +532,7 @@ export default class GameScene extends Phaser.Scene {
      * Adjust difficulty rates for block spawning
      * @param {object} newRates - Object with new rates for each difficulty
      * @example
-     * adjustDifficultyRates({ RECEPTION: 0.4, YEAR1: 0.4, YEAR2: 0.15, YEAR3: 0.05, SUPER: 0.1 });
+     * adjustDifficultyRates({ RECEPTION: 0.4, YEAR1: 0.4, YEAR2: 0.15, YEAR3: 0.05 });
      */
     adjustDifficultyRates(newRates) {
         // Update each rate that was provided
@@ -552,7 +540,6 @@ export default class GameScene extends Phaser.Scene {
         if (newRates.YEAR1 !== undefined) GameScene.BLOCK_SPAWN_RATES.YEAR1 = newRates.YEAR1;
         if (newRates.YEAR2 !== undefined) GameScene.BLOCK_SPAWN_RATES.YEAR2 = newRates.YEAR2;
         if (newRates.YEAR3 !== undefined) GameScene.BLOCK_SPAWN_RATES.YEAR3 = newRates.YEAR3;
-        if (newRates.SUPER !== undefined) GameScene.BLOCK_SPAWN_RATES.SUPER = newRates.SUPER;
 
         // Update math problems to reflect new rates
         this.updateMathProblems();
@@ -570,8 +557,7 @@ export default class GameScene extends Phaser.Scene {
             RECEPTION: Math.max(0.1, currentRates.RECEPTION - 0.1),
             YEAR1: Math.min(0.5, currentRates.YEAR1 + 0.05),
             YEAR2: Math.min(0.3, currentRates.YEAR2 + 0.03),
-            YEAR3: Math.min(0.2, currentRates.YEAR3 + 0.02),
-            SUPER: Math.min(0.15, currentRates.SUPER + 0.01)
+            YEAR3: Math.min(0.2, currentRates.YEAR3 + 0.02)
         };
 
         // Apply the new rates
@@ -587,6 +573,5 @@ export default class GameScene extends Phaser.Scene {
         GameScene.BLOCK_SPAWN_RATES.YEAR1 = GameScene.DEFAULT_SPAWN_RATES.YEAR1;
         GameScene.BLOCK_SPAWN_RATES.YEAR2 = GameScene.DEFAULT_SPAWN_RATES.YEAR2;
         GameScene.BLOCK_SPAWN_RATES.YEAR3 = GameScene.DEFAULT_SPAWN_RATES.YEAR3;
-        GameScene.BLOCK_SPAWN_RATES.SUPER = GameScene.DEFAULT_SPAWN_RATES.SUPER;
     }
 }

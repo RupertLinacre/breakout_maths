@@ -101,8 +101,9 @@ The codebase uses several software design patterns:
 #### Strategy Pattern
 - BallReleaseStrategy class defines different ways blocks can release balls
 - StandardBallReleaseStrategy: Single ball (green blocks)
-- MultiBallReleaseStrategy: Three balls in different directions (red blocks)
-- SuperSpecialBallReleaseStrategy: Spray of balls in multiple directions (purple blocks)
+- MultiBallReleaseStrategy: Three balls in different directions (orange blocks)
+- ArcBallReleaseStrategy: Spray of balls in an arc pattern (red blocks)
+- SprayBallReleaseStrategy: Spray of balls with delay (purple blocks)
 
 #### Factory Pattern
 - BlockFactory creates different types of blocks with appropriate properties
@@ -113,7 +114,6 @@ The codebase uses several software design patterns:
 The game features a dynamic difficulty system:
 - Default spawn rates for different block difficulties
 - Difficulty increases as the player progresses
-- Special blocks appear randomly with configurable probability
 
 ## Game Features
 
@@ -121,8 +121,7 @@ The game features a dynamic difficulty system:
 - **Green blocks**: Reception level math problems (1 ball when solved)
 - **Orange blocks**: Year 1 level math problems (3 balls when solved)
 - **Red blocks**: Year 2 level math problems (5 balls spray when solved)
-- **Purple blocks**: Year 3 level math problems (8 balls spray when solved)
-- **Dark purple blocks**: Super special blocks (balls spray everywhere)
+- **Purple blocks**: Year 3 level math problems (10 balls spray with delay when solved)
 
 ### Progressive Difficulty
 - As the player's score increases, the game adjusts difficulty
