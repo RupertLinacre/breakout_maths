@@ -76,11 +76,9 @@ export default class MathBlock extends Block {
         }
 
         // Get the expression from the problem object
-        const expression = this.problem.expression;
+        const expression = this.problem.expression_short;
         console.log(expression);
-        if (expression.includes('undefined')) {
-            debugger;
-        }
+
 
         // Handle text that might be too big for blocks
         let displayText = expression;
