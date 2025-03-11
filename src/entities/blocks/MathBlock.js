@@ -1,5 +1,5 @@
 import Block from './Block.js';
-import { createMathProblem, getProblemExpression, getAnswer, validateAnswer, getPoints } from 'maths-game-problem-generator';
+import { generateProblem, checkAnswer, YEAR_LEVELS } from 'maths-game-problem-generator';
 import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, ArcBallReleaseStrategy } from '../../strategies/BallReleaseStrategy.js';
 import Helpers from '../../utils/helpers.js';
 
@@ -68,15 +68,19 @@ export default class MathBlock extends Block {
      */
     setMathProblem(difficulty) {
         // Create the appropriate math problem based on difficulty using the new API
-        this.problem = createMathProblem(difficulty);
+        this.problem = generateProblem({ yearLevel: difficulty });
 
         // Create text display for the problem
         if (this.text) {
             this.text.destroy();
         }
 
-        // Get the expression using the new API
-        const expression = getProblemExpression(this.problem);
+        // Get the expression from the problem object
+        const expression = this.problem.expression;
+        console.log(expression);
+        if (expression.includes('undefined')) {
+            debugger;
+        }
 
         // Handle text that might be too big for blocks
         let displayText = expression;
@@ -109,7 +113,7 @@ export default class MathBlock extends Block {
      * @returns {boolean} Whether the answer is correct
      */
     checkAnswer(answer) {
-        return this.problem && validateAnswer(this.problem, answer);
+        return this.problem && checkAnswer(this.problem, answer);
     }
 
     /**
@@ -156,9 +160,9 @@ export default class MathBlock extends Block {
 
         super.destroy();
 
-        // Return score based on difficulty and multiplier using the new API
+        // Return score based on difficulty and multiplier
         return this.problem ?
-            getPoints(this.problem) * this.scoreMultiplier :
+            (this.problem.answer * 10) * this.scoreMultiplier :
             10 * this.scoreMultiplier;
     }
 
