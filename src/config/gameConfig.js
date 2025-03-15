@@ -20,44 +20,49 @@ const GameConfig = {
     // The actual year levels will be mapped based on the selected difficulty tier
     spawnRateDistribution: [0.60, 0.15, 0.15, 0.10],
 
-    // Game layout configuration
-    layout: (function () {
-        // Define base block grid parameters
-        const blockGridBase = {
-            columns: 50,
-            rows: 30,
-            blockWidth: 70,
-            blockHeight: 30,
-            spacing: 74,
-            rowSpacing: 40,
-            sidePadding: 50,  // Explicit padding on left and right sides
-            topPadding: 50,   // Padding from top of game to first row of blocks
-            bottomPadding: 150 // Padding from bottom row of blocks to bottom of game (for paddle and UI)
-        };
+    // Block grid configuration parameters
+    blockGrid: {
+        columns: 16,
+        rows: 10,
+        blockWidth: 70,
+        blockHeight: 30,
+        spacing: 74,
+        rowSpacing: 40,
+        sidePadding: 50,  // Explicit padding on left and right sides
+        topPadding: 50,   // Padding from top of game to first row of blocks
+        bottomPadding: 150 // Padding from bottom row of blocks to bottom of game (for paddle and UI)
+    },
+
+    // Layout will be computed by updateLayout()
+    layout: null,
+
+    // Dynamically compute layout based on blockGrid parameters
+    updateLayout: function () {
+        const bg = this.blockGrid;
 
         // Compute gameWidth and startX
-        const gameWidth = 2 * blockGridBase.sidePadding +
-            (blockGridBase.columns - 1) * blockGridBase.spacing +
-            blockGridBase.blockWidth;
-        const startX = blockGridBase.sidePadding + blockGridBase.blockWidth / 2;
+        const gameWidth = 2 * bg.sidePadding +
+            (bg.columns - 1) * bg.spacing +
+            bg.blockWidth;
+        const startX = bg.sidePadding + bg.blockWidth / 2;
 
         // Compute gameHeight and startY
-        const blockGridHeight = (blockGridBase.rows - 1) * blockGridBase.rowSpacing + blockGridBase.blockHeight;
-        const gameHeight = blockGridBase.topPadding + blockGridHeight + blockGridBase.bottomPadding;
-        const startY = blockGridBase.topPadding + blockGridBase.blockHeight / 2;
+        const blockGridHeight = (bg.rows - 1) * bg.rowSpacing + bg.blockHeight;
+        const gameHeight = bg.topPadding + blockGridHeight + bg.bottomPadding;
+        const startY = bg.topPadding + bg.blockHeight / 2;
 
         // Compute paddle position based on gameHeight
-        const paddleY = gameHeight - blockGridBase.bottomPadding / 2;
+        const paddleY = gameHeight - bg.bottomPadding / 2;
 
-        // Return the complete layout configuration
-        return {
-            // Game dimensions - now both dynamically computed
+        // Set the complete layout configuration
+        this.layout = {
+            // Game dimensions - dynamically computed
             gameWidth: gameWidth,
             gameHeight: gameHeight,
 
             // Block grid configuration
             blockGrid: {
-                ...blockGridBase,
+                ...bg,
                 startX: startX,  // Computed startX based on sidePadding
                 startY: startY,  // Computed startY based on topPadding
             },
@@ -105,7 +110,7 @@ const GameConfig = {
                 year3: 0x9b59b6      // Purple
             }
         };
-    })(),
+    },
 
     // Methods to access configuration
     getDifficulty: function () {
@@ -140,5 +145,8 @@ const GameConfig = {
         return rates;
     }
 };
+
+// Initialize layout
+GameConfig.updateLayout();
 
 export default GameConfig;

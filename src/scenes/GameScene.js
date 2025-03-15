@@ -501,13 +501,29 @@ export default class GameScene extends Phaser.Scene {
         // Reset UI scene if it exists
         if (this.scene.get('UIScene')) {
             const uiScene = this.scene.get('UIScene');
-            if (uiScene.score) {
+
+            // Reset score
+            if (uiScene.score !== undefined) {
                 uiScene.score = 0;
-                uiScene.scoreText.setText('Score: 0');
+                if (uiScene.scoreText) {
+                    uiScene.scoreText.setText('Score: 0');
+                }
             }
+
+            // Clear any messages
             if (uiScene.messageText) {
                 uiScene.messageText.setText('');
             }
+
+            // Ensure input box is recreated if it doesn't exist
+            if (!uiScene.answerText || !uiScene.answerText.active) {
+                uiScene.createAnswerInput();
+            }
+
+            // Trigger a resize event to ensure all UI elements are properly positioned
+            const width = this.game.config.width;
+            const height = this.game.config.height;
+            this.game.events.emit('resize', width, height);
         }
 
         // Log that the game has been restarted with the new difficulty

@@ -126,6 +126,35 @@
       </div>
     </div>
     <div id="game-container"></div>
+
+    <details class="game-controls" style="margin-top: 20px;">
+      <summary style="cursor: pointer; font-weight: bold; padding: 5px 0;">Adjust Game Layout</summary>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+        <div class="control-row">
+          <div class="control-label">Columns:</div>
+          <input type="number" id="columns" min="1" max="100" value="50"
+            style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+        </div>
+        <div class="control-row">
+          <div class="control-label">Rows:</div>
+          <input type="number" id="rows" min="1" max="50" value="30"
+            style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+        </div>
+        <div class="control-row">
+          <div class="control-label">Side Padding:</div>
+          <input type="number" id="sidePadding" min="0" max="200" value="50"
+            style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+        </div>
+        <div class="control-row">
+          <div class="control-label">Top Padding:</div>
+          <input type="number" id="topPadding" min="0" max="200" value="50"
+            style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+        </div>
+      </div>
+      <div class="instructions" style="margin-top: 10px;">
+        <strong>Note:</strong> Changing these values will restart the game with the new layout.
+      </div>
+    </details>
   </div>
 
   <script type="module" src="/src/main.js"></script>
@@ -175,6 +204,12 @@
       document.getElementById('difficulty-selector').value = currentDifficulty;
       updateBlockInfo(currentDifficulty);
 
+      // Set initial layout input values
+      document.getElementById('columns').value = GameConfig.blockGrid.columns;
+      document.getElementById('rows').value = GameConfig.blockGrid.rows;
+      document.getElementById('sidePadding').value = GameConfig.blockGrid.sidePadding;
+      document.getElementById('topPadding').value = GameConfig.blockGrid.topPadding;
+
       // Wait for the game to initialize
       const checkGameInitialized = setInterval(() => {
         const game = window.game;
@@ -187,6 +222,63 @@
         }
       }, 100);
     });
+
+    // Handle layout changes
+    function handleLayoutChange() {
+      let columns = parseInt(document.getElementById('columns').value);
+      let rows = parseInt(document.getElementById('rows').value);
+      let sidePadding = parseInt(document.getElementById('sidePadding').value);
+      let topPadding = parseInt(document.getElementById('topPadding').value);
+
+      // Validate inputs
+      if (isNaN(columns) || columns < 1) columns = 1;
+      if (isNaN(rows) || rows < 1) rows = 1;
+      if (isNaN(sidePadding) || sidePadding < 0) sidePadding = 0;
+      if (isNaN(topPadding) || topPadding < 0) topPadding = 0;
+
+      // Update GameConfig.blockGrid
+      GameConfig.blockGrid.columns = columns;
+      GameConfig.blockGrid.rows = rows;
+      GameConfig.blockGrid.sidePadding = sidePadding;
+      GameConfig.blockGrid.topPadding = topPadding;
+
+      // Update layout
+      GameConfig.updateLayout();
+
+      // Resize game canvas
+      const game = window.game;
+      if (game) {
+        const newWidth = GameConfig.layout.gameWidth;
+        const newHeight = GameConfig.layout.gameHeight;
+
+        // Resize the game canvas
+        game.scale.resize(newWidth, newHeight);
+
+        // Trigger resize event for UI scene
+        game.events.emit('resize', newWidth, newHeight);
+
+        // Restart game scene
+        if (gameInitialized && gameScene) {
+          // Add a small delay to ensure the resize is complete before restarting
+          setTimeout(() => {
+            gameScene.restartGame();
+
+            // Ensure UI scene is properly updated
+            const uiScene = game.scene.getScene('UIScene');
+            if (uiScene) {
+              // Force a resize event after restart to ensure UI elements are properly positioned
+              game.events.emit('resize', newWidth, newHeight);
+            }
+          }, 100);
+        }
+      }
+    }
+
+    // Add event listeners to layout inputs
+    document.getElementById('columns').addEventListener('change', handleLayoutChange);
+    document.getElementById('rows').addEventListener('change', handleLayoutChange);
+    document.getElementById('sidePadding').addEventListener('change', handleLayoutChange);
+    document.getElementById('topPadding').addEventListener('change', handleLayoutChange);
   </script>
 </body>
 

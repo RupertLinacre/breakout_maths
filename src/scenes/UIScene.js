@@ -46,6 +46,10 @@ export default class UIScene extends Phaser.Scene {
         // Add a console log to verify scene loading
         console.log("UI Scene Loaded");
 
+        // Listen for resize events
+        this.scale.on('resize', this.resize, this);
+        this.game.events.on('resize', this.resize, this);
+
         // Setup input handling for answer submission
         this.input.keyboard.on('keydown-ENTER', () => {
             // If victory screen is showing, handle restart
@@ -268,6 +272,96 @@ export default class UIScene extends Phaser.Scene {
     }
 
     /**
+     * Handle resize events
+     * @param {number} width - New width
+     * @param {number} height - New height
+     */
+    resize(width, height) {
+        // If width and height are not provided, use the current game size
+        if (!width || !height) {
+            width = this.game.config.width;
+            height = this.game.config.height;
+        }
+
+        // Update score text position
+        if (this.scoreText) {
+            const scoreX = GameConfig.layout.ui.scoreText.x;
+            const scoreY = height - GameConfig.layout.ui.scoreText.yOffsetFromBottom;
+            this.scoreText.setPosition(scoreX, scoreY);
+        }
+
+        // Update message text position
+        if (this.messageText) {
+            const messageX = width * GameConfig.layout.ui.messageText.xFactor;
+            const messageY = height - GameConfig.layout.ui.messageText.yOffsetFromBottom;
+            this.messageText.setPosition(messageX, messageY);
+        }
+
+        // Recreate the answer input at the new position
+        if (this.answerText) {
+            // Store current text if any
+            const currentText = this.answerText.text;
+
+            // Destroy existing input elements
+            if (this.inputBorder) this.inputBorder.destroy();
+            if (this.cursor) this.cursor.destroy();
+            this.answerText.destroy();
+
+            // Get new dimensions
+            const centerX = width * GameConfig.layout.ui.answerInput.xFactor;
+            const inputY = height - GameConfig.layout.ui.answerInput.yOffsetFromBottom;
+            const inputWidth = GameConfig.layout.ui.answerInput.width;
+            const padding = GameConfig.layout.ui.answerInput.padding;
+
+            // Recreate answer input text
+            this.answerText = this.add.text(centerX, inputY, currentText, {
+                fontSize: '24px',
+                backgroundColor: '#fff',
+                color: '#333',
+                fixedWidth: inputWidth,
+                padding: { x: padding, y: 5 },
+                align: 'left'
+            }).setOrigin(0.5);
+
+            // Add cursor effect and input box styling
+            this.answerText.setPadding(padding);
+            this.answerText.setBackgroundColor('#ffffff');
+
+            // Create input box border
+            const borderWidth = GameConfig.layout.ui.answerInput.borderWidth;
+            const borderHeight = GameConfig.layout.ui.answerInput.borderHeight;
+            this.inputBorder = this.add.rectangle(centerX, inputY, borderWidth, borderHeight, 0x3498db, 0);
+            this.inputBorder.setStrokeStyle(2, 0x3498db);
+
+            // Create blinking cursor
+            this.cursor = this.add.text(
+                this.answerText.x - (this.answerText.width / 2) + padding,
+                this.answerText.y,
+                '|',
+                { fontSize: '24px', color: '#000000', fontStyle: 'bold' }
+            ).setOrigin(0.5);
+
+            // Make sure cursor is visible
+            this.cursor.visible = true;
+
+            // Update cursor position
+            this.updateCursorPosition();
+
+            // Make clickable
+            this.answerText.setInteractive();
+
+            // Set focus indicator (light blue glow)
+            this.answerText.on('pointerover', () => {
+                this.inputBorder.setStrokeStyle(3, 0x3498db);
+            });
+
+            this.answerText.on('pointerout', () => {
+                this.inputBorder.setStrokeStyle(2, 0x3498db);
+            });
+        }
+    }
+
+    /**
      * Restart the game from victory screen
      */
     restartFromVictory() {
@@ -281,6 +375,11 @@ export default class UIScene extends Phaser.Scene {
         // Clean up victory screen
         this.victoryElements.forEach(element => element.destroy());
         this.victoryElements = null;
+
+        // Ensure input box is visible after restart
+        if (!this.answerText || !this.answerText.active) {
+            this.createAnswerInput();
+        }
     }
 
     /**
