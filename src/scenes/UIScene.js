@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import GameConfig from '../config/gameConfig.js';
 
 /**
  * Scene for handling UI elements

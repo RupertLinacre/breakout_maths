@@ -5,6 +5,7 @@ import Block from '../entities/blocks/Block.js';
 import MathBlock from '../entities/blocks/MathBlock.js';
 import BlockFactory from '../factories/BlockFactory.js';
 import { generateProblem } from 'maths-game-problem-generator';
+import GameConfig from '../config/gameConfig.js';
 
 /**
  * Main game scene for gameplay logic
@@ -244,18 +245,28 @@ export default class GameScene extends Phaser.Scene {
         if (forcedDifficulty) {
             difficulty = forcedDifficulty;
         } else {
-            // Use spawn rate constants for probability distribution
-            const rand = Math.random();
-            const rates = GameScene.BLOCK_SPAWN_RATES;
+            // Get the current year range and spawn rates from the game config
+            const yearRange = GameConfig.getYearRange();
+            const rates = GameConfig.getSpawnRates();
 
-            if (rand < rates.RECEPTION) {
-                difficulty = 'reception';
-            } else if (rand < rates.RECEPTION + rates.YEAR1) {
-                difficulty = 'year1';
-            } else if (rand < rates.RECEPTION + rates.YEAR1 + rates.YEAR2) {
-                difficulty = 'year2';
-            } else {
-                difficulty = 'year3';
+            // Use random number to select difficulty based on spawn rates
+            const rand = Math.random();
+            let cumulativeProbability = 0;
+
+            // Find the appropriate difficulty level based on the random value
+            for (let i = 0; i < yearRange.length; i++) {
+                const yearLevel = yearRange[i].toUpperCase();
+                cumulativeProbability += rates[yearLevel] || 0;
+
+                if (rand < cumulativeProbability) {
+                    difficulty = yearRange[i];
+                    break;
+                }
+            }
+
+            // Fallback to the first difficulty level if none was selected
+            if (!difficulty && yearRange.length > 0) {
+                difficulty = yearRange[0];
             }
         }
 
@@ -482,7 +493,7 @@ export default class GameScene extends Phaser.Scene {
         // Clean up existing game objects
         this.cleanupGameObjects();
 
-        // Reset difficulty to initial values
+        // Reset difficulty to current configuration values
         this.resetDifficulty();
 
         // Reset game state
@@ -569,10 +580,35 @@ export default class GameScene extends Phaser.Scene {
      * Reset difficulty to default values
      */
     resetDifficulty() {
-        // Reset to default spawn rates
-        GameScene.BLOCK_SPAWN_RATES.RECEPTION = GameScene.DEFAULT_SPAWN_RATES.RECEPTION;
-        GameScene.BLOCK_SPAWN_RATES.YEAR1 = GameScene.DEFAULT_SPAWN_RATES.YEAR1;
-        GameScene.BLOCK_SPAWN_RATES.YEAR2 = GameScene.DEFAULT_SPAWN_RATES.YEAR2;
-        GameScene.BLOCK_SPAWN_RATES.YEAR3 = GameScene.DEFAULT_SPAWN_RATES.YEAR3;
+        // Get spawn rates from the game config based on current difficulty
+        const configRates = GameConfig.getSpawnRates();
+
+        // Reset to configured spawn rates
+        GameScene.BLOCK_SPAWN_RATES.RECEPTION = configRates.RECEPTION;
+        GameScene.BLOCK_SPAWN_RATES.YEAR1 = configRates.YEAR1;
+        GameScene.BLOCK_SPAWN_RATES.YEAR2 = configRates.YEAR2;
+        GameScene.BLOCK_SPAWN_RATES.YEAR3 = configRates.YEAR3;
+    }
+
+    /**
+     * Change the game difficulty
+     * @param {string} difficultyTier - The difficulty tier to set ('year1', 'year2', etc.)
+     * @returns {boolean} Whether the difficulty was successfully changed
+     */
+    setGameDifficulty(difficultyTier) {
+        // Attempt to set the difficulty in the game config
+        const success = GameConfig.setDifficulty(difficultyTier);
+
+        if (success) {
+            // Update spawn rates based on the new difficulty
+            this.resetDifficulty();
+
+            // Update math problems to reflect the new difficulty
+            this.updateMathProblems();
+
+            return true;
+        }
+
+        return false;
     }
 }
