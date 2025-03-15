@@ -1,3 +1,4 @@
+
 import MathBlock from '../entities/blocks/MathBlock.js';
 import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, ArcBallReleaseStrategy, SprayBallReleaseStrategy } from '../strategies/BallReleaseStrategy.js';
 import GameConfig from '../config/gameConfig.js';

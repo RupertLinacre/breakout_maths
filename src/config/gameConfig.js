@@ -4,7 +4,7 @@
  */
 const GameConfig = {
     // Default difficulty level
-    difficulty: 'reception',
+    difficulty: 'year1',
 
     // Year ranges for each difficulty tier
     // These map to the problem difficulty levels in the maths-game-problem-generator
@@ -18,7 +18,7 @@ const GameConfig = {
 
     // Single spawn rate distribution - always the same pattern
     // The actual year levels will be mapped based on the selected difficulty tier
-    spawnRateDistribution: [0.50, 0.25, 0.15, 0.10],
+    spawnRateDistribution: [0.60, 0.15, 0.15, 0.10],
 
     // Methods to access configuration
     getDifficulty: function () {

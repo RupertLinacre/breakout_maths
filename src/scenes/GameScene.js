@@ -219,10 +219,8 @@ export default class GameScene extends Phaser.Scene {
     /**
      * Assign a math problem to the lowest block in a specific column
      * @param {number} column - Column index
-     * @param {string|null} forcedDifficulty - Optional forced difficulty
-     * @param {number|null} forcedPositionIndex - Optional forced position index
      */
-    assignMathProblemToColumn(column, forcedDifficulty, forcedPositionIndex) {
+    assignMathProblemToColumn(column) {
         if (!this.gameInProgress) return;
 
         // Find the lowest active block in this column
@@ -241,45 +239,27 @@ export default class GameScene extends Phaser.Scene {
         const x = lowestBlock.x;
         const y = lowestBlock.y;
 
-        // Determine difficulty and position index based on spawn rates or forced values
-        let difficulty;
-        let positionIndex;
+        // Get the current year range
+        const yearRange = GameConfig.getYearRange();
 
-        if (forcedDifficulty) {
-            difficulty = forcedDifficulty;
+        // Random selection based on spawn rates
+        const rates = GameConfig.getSpawnRates();
+        const rand = Math.random();
+        let cumulativeProbability = 0;
 
-            // If difficulty is forced but position is not, use the first occurrence
-            if (forcedPositionIndex === undefined || forcedPositionIndex === null) {
-                const yearRange = GameConfig.getYearRange();
-                positionIndex = yearRange.indexOf(difficulty);
-            } else {
-                positionIndex = forcedPositionIndex;
-            }
-        } else {
-            // Get the current year range and spawn rates from the game config
-            const yearRange = GameConfig.getYearRange();
-            const rates = GameConfig.getSpawnRates();
+        // Default to first level in case none is selected
+        let difficulty = yearRange[0];
+        let positionIndex = 0;
 
-            // Use random number to select difficulty based on spawn rates
-            const rand = Math.random();
-            let cumulativeProbability = 0;
+        // Find the appropriate difficulty level based on probability
+        for (let i = 0; i < yearRange.length; i++) {
+            const yearLevel = yearRange[i].toUpperCase();
+            cumulativeProbability += rates[yearLevel] || 0;
 
-            // Find the appropriate difficulty level based on the random value
-            for (let i = 0; i < yearRange.length; i++) {
-                const yearLevel = yearRange[i].toUpperCase();
-                cumulativeProbability += rates[yearLevel] || 0;
-
-                if (rand < cumulativeProbability) {
-                    difficulty = yearRange[i];
-                    positionIndex = i; // This is the key - we keep track of which position in the distribution
-                    break;
-                }
-            }
-
-            // Fallback to the first difficulty level if none was selected
-            if (!difficulty && yearRange.length > 0) {
-                difficulty = yearRange[0];
-                positionIndex = 0;
+            if (rand < cumulativeProbability) {
+                difficulty = yearRange[i];
+                positionIndex = i;
+                break;
             }
         }
 
