@@ -4,45 +4,132 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Maths Breakout Game</title>
+  <title>Breakout Maths Game</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f0f0f0;
       margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      padding: 0;
+      background-color: #f5f5f5;
     }
 
-    h1 {
-      color: #333;
+    .container {
+      max-width: 1250px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .game-controls {
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
       margin-bottom: 10px;
     }
 
+    .control-label {
+      font-weight: bold;
+      margin-right: 15px;
+      min-width: 150px;
+    }
+
+    select {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      background-color: white;
+    }
+
+    .block-info {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      border-left: 4px solid #3498db;
+    }
+
+    .instructions {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      border-left: 4px solid #2ecc71;
+    }
+
+    .block-color {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      margin-right: 5px;
+      border-radius: 2px;
+    }
+
+    .green {
+      background-color: #2ecc71;
+    }
+
+    .orange {
+      background-color: #f39c12;
+    }
+
+    .red {
+      background-color: #e74c3c;
+    }
+
+    .purple {
+      background-color: #9b59b6;
+    }
+
     #game-container {
-      margin: 0 auto;
-      width: 1250px;
+      border-radius: 5px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .difficulty-name {
+      font-weight: bold;
+      color: #3498db;
     }
   </style>
-  <script type="module" crossorigin src="/breakout_maths/assets/index-DVsac0G_.js"></script>
+  <script type="module" crossorigin src="/breakout_maths/assets/index-DcCxCtwR.js"></script>
 </head>
 
 <body>
-  <h1>Maths Breakout Game</h1>
-  <p>Use LEFT/RIGHT to move. Type answers and hit ENTER to shoot at blocks.</p>
-  <p>
-    <span style="color: #2ecc71;">Green blocks</span>: Reception level (1 ball).
-    <span style="color: #e74c3c;">Orange blocks</span>: Year 1 level (3 balls).
-    <span style="color: #e67e22;">Red blocks</span>: Year 2 level (spray balls).
-    <span style="color: #9b59b6;">Purple blocks</span>: Year 3 level (spray balls with delay).
-  </p>
-  <div id="game-container"></div>
+  <div class="container">
+    <div class="game-controls">
+      <div class="control-row">
+        <div class="control-label">Choose difficulty level:</div>
+        <select id="difficulty-selector">
+          <option value="reception">Reception</option>
+          <option value="year1" selected>Year 1</option>
+          <option value="year2">Year 2</option>
+          <option value="year3">Year 3</option>
+          <option value="year4">Year 4</option>
+        </select>
+      </div>
+      <div class="block-info" id="block-info">
+        <div class="difficulty-name">Current difficulty: Year 1</div>
+        <div><span class="block-color green"></span> Green blocks: Reception level (1 ball)</div>
+        <div><span class="block-color orange"></span> Orange blocks: Year 1 level (3 balls)</div>
+        <div><span class="block-color red"></span> Red blocks: Year 2 level (5 balls in arc)</div>
+        <div><span class="block-color purple"></span> Purple blocks: Year 3 level (10 balls spray)</div>
+      </div>
+      <div class="instructions">
+        <strong>How to play:</strong> Use LEFT/RIGHT arrow keys to move the paddle. When you hit a math block, solve the
+        problem by typing the answer and pressing ENTER. Correct answers release balls and award points based on
+        difficulty.
+      </div>
+    </div>
+    <div id="game-container"></div>
+  </div>
 
-  <!-- Load the main game script via ES module -->
 </body>
 
 </html>
