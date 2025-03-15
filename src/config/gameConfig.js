@@ -21,66 +21,81 @@ const GameConfig = {
     spawnRateDistribution: [0.60, 0.15, 0.15, 0.10],
 
     // Game layout configuration
-    layout: {
-        // Game dimensions
-        gameWidth: 1250,
-        gameHeight: 600,
-
-        // Block grid configuration
-        blockGrid: {
-            columns: 16,
+    layout: (function () {
+        // Define base block grid parameters
+        const blockGridBase = {
+            columns: 10,
             rows: 5,
             blockWidth: 70,
             blockHeight: 30,
             spacing: 74,
-            startX: 65,
-            startY: 50,
-            rowSpacing: 40
-        },
+            rowSpacing: 40,
+            sidePadding: 65,  // Explicit padding on left and right sides
+        };
 
-        // Paddle configuration
-        paddle: {
-            width: 100,
-            height: 20,
-            initialY: 480,
-            speed: 7,
-            cornerRadius: 10
-        },
+        // Compute gameWidth and startX
+        const gameWidth = 2 * blockGridBase.sidePadding +
+            (blockGridBase.columns - 1) * blockGridBase.spacing +
+            blockGridBase.blockWidth;
+        const startX = blockGridBase.sidePadding + blockGridBase.blockWidth / 2;
 
-        // Ball configuration
-        ball: {
-            size: 20,
-            speed: 300
-        },
+        // Return the complete layout configuration
+        return {
+            // Game dimensions - gameWidth is now dynamically computed
+            gameWidth: gameWidth,
+            gameHeight: 600,
 
-        // UI element positions
-        ui: {
-            scoreText: {
-                x: 20,
-                yOffsetFromBottom: 70
+            // Block grid configuration
+            blockGrid: {
+                ...blockGridBase,
+                startX: startX,  // Computed startX based on sidePadding
+                startY: 50,
             },
-            messageText: {
-                xFactor: 0.5, // Center horizontally
-                yOffsetFromBottom: 40
-            },
-            answerInput: {
-                xFactor: 0.5, // Center horizontally
-                yOffsetFromBottom: 70,
+
+            // Paddle configuration
+            paddle: {
                 width: 100,
-                padding: 10,
-                borderWidth: 120,
-                borderHeight: 44
-            }
-        },
+                height: 20,
+                initialY: 480,
+                speed: 7,
+                cornerRadius: 10
+            },
 
-        // Block colors
-        blockColors: {
-            reception: 0x2ecc71, // Green
-            year1: 0xf39c12,     // Orange
-            year2: 0xe74c3c,     // Red
-            year3: 0x9b59b6      // Purple
-        }
-    },
+            // Ball configuration
+            ball: {
+                size: 20,
+                speed: 300
+            },
+
+            // UI element positions
+            ui: {
+                scoreText: {
+                    x: 20,
+                    yOffsetFromBottom: 70
+                },
+                messageText: {
+                    xFactor: 0.5, // Center horizontally
+                    yOffsetFromBottom: 40
+                },
+                answerInput: {
+                    xFactor: 0.5, // Center horizontally
+                    yOffsetFromBottom: 70,
+                    width: 100,
+                    padding: 10,
+                    borderWidth: 120,
+                    borderHeight: 44
+                }
+            },
+
+            // Block colors
+            blockColors: {
+                reception: 0x2ecc71, // Green
+                year1: 0xf39c12,     // Orange
+                year2: 0xe74c3c,     // Red
+                year3: 0x9b59b6      // Purple
+            }
+        };
+    })(),
 
     // Methods to access configuration
     getDifficulty: function () {
