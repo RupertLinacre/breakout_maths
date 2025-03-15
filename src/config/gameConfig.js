@@ -24,13 +24,15 @@ const GameConfig = {
     layout: (function () {
         // Define base block grid parameters
         const blockGridBase = {
-            columns: 30,
-            rows: 10,
+            columns: 50,
+            rows: 30,
             blockWidth: 70,
             blockHeight: 30,
             spacing: 74,
             rowSpacing: 40,
-            sidePadding: 35,  // Explicit padding on left and right sides
+            sidePadding: 50,  // Explicit padding on left and right sides
+            topPadding: 50,   // Padding from top of game to first row of blocks
+            bottomPadding: 150 // Padding from bottom row of blocks to bottom of game (for paddle and UI)
         };
 
         // Compute gameWidth and startX
@@ -39,24 +41,32 @@ const GameConfig = {
             blockGridBase.blockWidth;
         const startX = blockGridBase.sidePadding + blockGridBase.blockWidth / 2;
 
+        // Compute gameHeight and startY
+        const blockGridHeight = (blockGridBase.rows - 1) * blockGridBase.rowSpacing + blockGridBase.blockHeight;
+        const gameHeight = blockGridBase.topPadding + blockGridHeight + blockGridBase.bottomPadding;
+        const startY = blockGridBase.topPadding + blockGridBase.blockHeight / 2;
+
+        // Compute paddle position based on gameHeight
+        const paddleY = gameHeight - blockGridBase.bottomPadding / 2;
+
         // Return the complete layout configuration
         return {
-            // Game dimensions - gameWidth is now dynamically computed
+            // Game dimensions - now both dynamically computed
             gameWidth: gameWidth,
-            gameHeight: 600,
+            gameHeight: gameHeight,
 
             // Block grid configuration
             blockGrid: {
                 ...blockGridBase,
                 startX: startX,  // Computed startX based on sidePadding
-                startY: 50,
+                startY: startY,  // Computed startY based on topPadding
             },
 
             // Paddle configuration
             paddle: {
                 width: 100,
                 height: 20,
-                initialY: 480,
+                initialY: paddleY, // Dynamically positioned based on gameHeight
                 speed: 7,
                 cornerRadius: 10
             },
