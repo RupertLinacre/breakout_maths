@@ -495,6 +495,10 @@ export default class GameScene extends Phaser.Scene {
         // Recreate game objects
         this.createBlockGrid();
 
+        // Recreate paddle with updated layout settings
+        const gameWidth = GameConfig.layout.gameWidth;
+        this.paddle = new Paddle(this, gameWidth / 2, GameConfig.layout.paddle.initialY);
+
         // Re-establish collision detection
         this.physics.add.collider(this.balls, this.blocks, this.handleBallBlockCollision, null, this);
 
@@ -513,11 +517,6 @@ export default class GameScene extends Phaser.Scene {
             // Clear any messages
             if (uiScene.messageText) {
                 uiScene.messageText.setText('');
-            }
-
-            // Ensure input box is recreated if it doesn't exist
-            if (!uiScene.answerText || !uiScene.answerText.active) {
-                uiScene.createAnswerInput();
             }
 
             // Trigger a resize event to ensure all UI elements are properly positioned
@@ -558,6 +557,12 @@ export default class GameScene extends Phaser.Scene {
                 if (block) block.destroy();
             });
             this.mathBlocks = [];
+
+            // Destroy the paddle if it exists
+            if (this.paddle) {
+                this.paddle.destroy();
+                this.paddle = null;
+            }
         } catch (e) {
             console.error("Error cleaning up game objects:", e);
         }

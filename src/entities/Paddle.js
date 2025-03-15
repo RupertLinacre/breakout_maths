@@ -72,4 +72,13 @@ export default class Paddle {
     getY() {
         return this.sprite.y;
     }
+
+    /**
+     * Destroy the paddle sprite
+     */
+    destroy() {
+        if (this.sprite && this.sprite.active) {
+            this.sprite.destroy();
+        }
+    }
 }

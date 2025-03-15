@@ -11,11 +11,17 @@
       margin: 0;
       padding: 0;
       background-color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .container {
       margin: 0 auto;
       padding: 20px;
+
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .game-controls {
@@ -24,6 +30,7 @@
       background-color: #fff;
       border-radius: 5px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      width: 100%;
     }
 
     .control-row {
@@ -90,11 +97,30 @@
       border-radius: 5px;
       overflow: hidden;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
     }
 
     .difficulty-name {
       font-weight: bold;
       color: #3498db;
+    }
+
+    #answer-input {
+      padding: 10px;
+      font-size: 18px;
+      border: 2px solid #3498db;
+      border-radius: 5px;
+      width: 200px;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    #input-container {
+      text-align: center;
+      margin-top: 20px;
+      width: 100%;
     }
   </style>
 </head>
@@ -126,6 +152,9 @@
       </div>
     </div>
     <div id="game-container"></div>
+    <div id="input-container">
+      <input type="text" id="answer-input" placeholder="Enter your answer">
+    </div>
 
     <details class="game-controls" style="margin-top: 20px;">
       <summary style="cursor: pointer; font-weight: bold; padding: 5px 0;">Adjust Game Layout</summary>
@@ -186,13 +215,13 @@
     document.getElementById('difficulty-selector').addEventListener('change', function () {
       const selectedDifficulty = this.value;
 
-      // Set the new difficulty in the game config
-      GameConfig.setDifficulty(selectedDifficulty);
+      // Save to localStorage
+      localStorage.setItem('mathGameDifficulty', selectedDifficulty);
 
-      // Update the block info text
+      // Set difficulty in GameConfig
+      GameConfig.setDifficulty(selectedDifficulty);
       updateBlockInfo(selectedDifficulty);
 
-      // Reset the game with the new difficulty
       if (gameInitialized && gameScene) {
         gameScene.restartGame();
       }
@@ -200,17 +229,13 @@
 
     // Initialize block info with current difficulty and get game scene reference
     document.addEventListener('DOMContentLoaded', function () {
-      const currentDifficulty = GameConfig.getDifficulty();
-      document.getElementById('difficulty-selector').value = currentDifficulty;
-      updateBlockInfo(currentDifficulty);
+      // Load difficulty from localStorage or default to "year1"
+      const savedDifficulty = localStorage.getItem('mathGameDifficulty') || 'year1';
 
-      // Set initial layout input values
-      document.getElementById('columns').value = GameConfig.blockGrid.columns;
-      document.getElementById('rows').value = GameConfig.blockGrid.rows;
-      document.getElementById('sidePadding').value = GameConfig.blockGrid.sidePadding;
-      document.getElementById('topPadding').value = GameConfig.blockGrid.topPadding;
+      document.getElementById('difficulty-selector').value = savedDifficulty;
+      GameConfig.setDifficulty(savedDifficulty);
+      updateBlockInfo(savedDifficulty);
 
-      // Wait for the game to initialize
       const checkGameInitialized = setInterval(() => {
         const game = window.game;
         if (game && game.scene) {
@@ -268,6 +293,12 @@
             if (uiScene) {
               // Force a resize event after restart to ensure UI elements are properly positioned
               game.events.emit('resize', newWidth, newHeight);
+
+              // Focus the answer input after resize
+              const answerInput = document.getElementById('answer-input');
+              if (answerInput && !answerInput.disabled) {
+                answerInput.focus();
+              }
             }
           }, 100);
         }
@@ -279,6 +310,18 @@
     document.getElementById('rows').addEventListener('change', handleLayoutChange);
     document.getElementById('sidePadding').addEventListener('change', handleLayoutChange);
     document.getElementById('topPadding').addEventListener('change', handleLayoutChange);
+
+    // Connect the HTML input to the game logic
+    const answerInput = document.getElementById('answer-input');
+    answerInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !answerInput.disabled) {
+        const answer = answerInput.value;
+        const uiScene = window.game.scene.getScene('UIScene');
+        uiScene.submitAnswer(answer);
+        answerInput.value = '';
+        event.preventDefault();
+      }
+    });
   </script>
 </body>
 
