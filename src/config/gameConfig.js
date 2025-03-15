@@ -24,13 +24,13 @@ const GameConfig = {
     layout: (function () {
         // Define base block grid parameters
         const blockGridBase = {
-            columns: 10,
-            rows: 5,
+            columns: 30,
+            rows: 10,
             blockWidth: 70,
             blockHeight: 30,
             spacing: 74,
             rowSpacing: 40,
-            sidePadding: 65,  // Explicit padding on left and right sides
+            sidePadding: 35,  // Explicit padding on left and right sides
         };
 
         // Compute gameWidth and startX
