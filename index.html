@@ -259,9 +259,18 @@
           if (gameScene) {
             gameInitialized = true;
             clearInterval(checkGameInitialized);
+
+            // Focus the answer input after game initialization
+            const answerInput = document.getElementById('answer-input');
+            if (answerInput) {
+              answerInput.focus();
+            }
           }
         }
       }, 100);
+
+      // Also focus the input field immediately on page load
+      document.getElementById('answer-input').focus();
     });
 
     // Handle layout changes
