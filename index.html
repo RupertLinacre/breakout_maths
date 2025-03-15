@@ -316,6 +316,7 @@
     answerInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' && !answerInput.disabled) {
         const answer = answerInput.value;
+
         const uiScene = window.game.scene.getScene('UIScene');
         uiScene.submitAnswer(answer);
         answerInput.value = '';

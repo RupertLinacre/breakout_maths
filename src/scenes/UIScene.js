@@ -55,7 +55,7 @@ export default class UIScene extends Phaser.Scene {
      * @param {string} answer - The answer from the HTML input
      */
     submitAnswer(answer) {
-        const parsedAnswer = parseInt(answer);
+        const parsedAnswer = parseFloat(answer);
         if (isNaN(parsedAnswer)) return;
 
         // Tell the game scene to check the answer

@@ -114,6 +114,7 @@ export default class MathBlock extends Block {
      * @returns {boolean} Whether the answer is correct
      */
     checkAnswer(answer) {
+
         return this.problem && checkAnswer(this.problem, answer);
     }
 
