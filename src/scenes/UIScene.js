@@ -21,14 +21,22 @@ export default class UIScene extends Phaser.Scene {
         // Get reference to the game scene
         this.gameScene = this.scene.get('GameScene');
 
-        // Get game dimensions
-        const gameWidth = this.game.config.width;
-        const gameHeight = this.game.config.height;
+        // Get game dimensions from config
+        const gameWidth = GameConfig.layout.gameWidth;
+        const gameHeight = GameConfig.layout.gameHeight;
 
         // Create UI elements
         this.createAnswerInput();
-        this.scoreText = this.add.text(20, gameHeight - 70, 'Score: 0', { fontSize: '24px' });
-        this.messageText = this.add.text(gameWidth / 2, gameHeight - 40, '', { fontSize: '24px' }).setOrigin(0.5);
+
+        // Position score text using config values
+        const scoreX = GameConfig.layout.ui.scoreText.x;
+        const scoreY = gameHeight - GameConfig.layout.ui.scoreText.yOffsetFromBottom;
+        this.scoreText = this.add.text(scoreX, scoreY, 'Score: 0', { fontSize: '24px' });
+
+        // Position message text using config values
+        const messageX = gameWidth * GameConfig.layout.ui.messageText.xFactor;
+        const messageY = gameHeight - GameConfig.layout.ui.messageText.yOffsetFromBottom;
+        this.messageText = this.add.text(messageX, messageY, '', { fontSize: '24px' }).setOrigin(0.5);
 
         // Make sure cursor is visible initially
         if (this.cursor) {
@@ -77,34 +85,39 @@ export default class UIScene extends Phaser.Scene {
      * Create the answer input box and cursor
      */
     createAnswerInput() {
-        // Get game width for positioning
-        const gameWidth = this.game.config.width;
-        const gameHeight = this.game.config.height;
+        // Get game dimensions from config
+        const gameWidth = GameConfig.layout.gameWidth;
+        const gameHeight = GameConfig.layout.gameHeight;
 
         // Center position for the input
-        const centerX = gameWidth / 2;
+        const centerX = gameWidth * GameConfig.layout.ui.answerInput.xFactor;
+        const inputY = gameHeight - GameConfig.layout.ui.answerInput.yOffsetFromBottom;
+        const inputWidth = GameConfig.layout.ui.answerInput.width;
+        const padding = GameConfig.layout.ui.answerInput.padding;
 
         // Create answer input text
-        this.answerText = this.add.text(centerX, gameHeight - 70, '', {
+        this.answerText = this.add.text(centerX, inputY, '', {
             fontSize: '24px',
             backgroundColor: '#fff',
             color: '#333',
-            fixedWidth: 100,
-            padding: { x: 10, y: 5 },
+            fixedWidth: inputWidth,
+            padding: { x: padding, y: 5 },
             align: 'left'
         }).setOrigin(0.5);
 
         // Add cursor effect and input box styling
-        this.answerText.setPadding(10);
+        this.answerText.setPadding(padding);
         this.answerText.setBackgroundColor('#ffffff');
 
         // Create input box border
-        this.inputBorder = this.add.rectangle(centerX, gameHeight - 70, 120, 44, 0x3498db, 0);
+        const borderWidth = GameConfig.layout.ui.answerInput.borderWidth;
+        const borderHeight = GameConfig.layout.ui.answerInput.borderHeight;
+        this.inputBorder = this.add.rectangle(centerX, inputY, borderWidth, borderHeight, 0x3498db, 0);
         this.inputBorder.setStrokeStyle(2, 0x3498db);
 
         // Create blinking cursor
         this.cursor = this.add.text(
-            this.answerText.x - (this.answerText.width / 2) + 10,
+            this.answerText.x - (this.answerText.width / 2) + padding,
             this.answerText.y,
             '|',
             { fontSize: '24px', color: '#000000', fontStyle: 'bold' }
@@ -141,8 +154,8 @@ export default class UIScene extends Phaser.Scene {
      * Update cursor position based on text length
      */
     updateCursorPosition() {
-        // Get the padding value
-        const padding = 10;
+        // Get the padding value from config
+        const padding = GameConfig.layout.ui.answerInput.padding;
 
         // Calculate cursor position based on text length
         // For empty text, position at the start of the input box

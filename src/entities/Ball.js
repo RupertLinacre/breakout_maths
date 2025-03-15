@@ -1,3 +1,5 @@
+import GameConfig from '../config/gameConfig.js';
+
 /**
  * Ball class for projectiles
  */
@@ -13,7 +15,7 @@ export default class Ball {
         this.sprite = scene.balls.create(x, y, 'ball');
         this.sprite.setCollideWorldBounds(false);
         this.sprite.setBounce(1);
-        this.speed = 300;
+        this.speed = GameConfig.layout.ball.speed;
     }
 
     /**

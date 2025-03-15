@@ -1,3 +1,5 @@
+import GameConfig from '../config/gameConfig.js';
+
 /**
  * Paddle (player-controlled) class
  */
@@ -11,14 +13,13 @@ export default class Paddle {
     constructor(scene, x, y) {
         this.scene = scene;
         this.sprite = scene.physics.add.image(x, y, 'paddle').setImmovable(true);
-        this.speed = 7;
+        this.speed = GameConfig.layout.paddle.speed;
 
-        // Get the game width from the scene's game config
-        const gameWidth = scene.game.config.width;
+        // Get the game width from the config
+        const gameWidth = GameConfig.layout.gameWidth;
 
-        // Calculate paddle bounds based on game width and paddle width
-        // The paddle width is 80px based on the texture generation in GameScene.js
-        const paddleHalfWidth = 40; // Half of the paddle width
+        // Calculate paddle bounds based on actual sprite width
+        const paddleHalfWidth = this.sprite.width / 2;
 
         // Set minimum X to be the paddle's half-width from the left edge
         this.minX = paddleHalfWidth;

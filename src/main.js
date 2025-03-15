@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
 import GameScene from './scenes/GameScene.js';
 import UIScene from './scenes/UIScene.js';
+import GameConfig from './config/gameConfig.js';
 
 const config = {
     type: Phaser.AUTO,
-    width: 1250,
-    height: 600,
+    width: GameConfig.layout.gameWidth,
+    height: GameConfig.layout.gameHeight,
     parent: 'game-container',
     physics: {
         default: 'arcade',

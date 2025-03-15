@@ -72,9 +72,9 @@ export default class GameScene extends Phaser.Scene {
         g.fillStyle(0x3498db);
 
         // Draw a rounded rectangle manually
-        const width = 100;
-        const height = 20;
-        const radius = 10;
+        const width = GameConfig.layout.paddle.width;
+        const height = GameConfig.layout.paddle.height;
+        const radius = GameConfig.layout.paddle.cornerRadius;
 
         g.beginPath();
         // Start from top-right, moving counter-clockwise
@@ -100,36 +100,39 @@ export default class GameScene extends Phaser.Scene {
         // Create ball graphic using standard drawing methods
         g.fillStyle(0xffffff);
         g.beginPath();
-        g.arc(10, 10, 10, 0, Math.PI * 2);
+        const ballRadius = GameConfig.layout.ball.size / 2;
+        g.arc(ballRadius, ballRadius, ballRadius, 0, Math.PI * 2);
         g.closePath();
         g.fillPath();
-        g.generateTexture('ball', 20, 20);
+        g.generateTexture('ball', GameConfig.layout.ball.size, GameConfig.layout.ball.size);
         g.clear();
 
         // Generate block textures with different colors for different difficulties
+        const blockWidth = GameConfig.layout.blockGrid.blockWidth;
+        const blockHeight = GameConfig.layout.blockGrid.blockHeight;
 
         // Reception blocks - green
-        g.fillStyle(0x2ecc71);
-        g.fillRect(0, 0, 70, 30);
-        g.generateTexture('blockEasy', 70, 30);
+        g.fillStyle(GameConfig.layout.blockColors.reception);
+        g.fillRect(0, 0, blockWidth, blockHeight);
+        g.generateTexture('blockEasy', blockWidth, blockHeight);
         g.clear();
 
         // Year 1 blocks - orange
-        g.fillStyle(0xf39c12);
-        g.fillRect(0, 0, 70, 30);
-        g.generateTexture('blockMedium', 70, 30);
+        g.fillStyle(GameConfig.layout.blockColors.year1);
+        g.fillRect(0, 0, blockWidth, blockHeight);
+        g.generateTexture('blockMedium', blockWidth, blockHeight);
         g.clear();
 
         // Year 2 blocks - red
-        g.fillStyle(0xe74c3c);
-        g.fillRect(0, 0, 70, 30);
-        g.generateTexture('blockHard', 70, 30);
+        g.fillStyle(GameConfig.layout.blockColors.year2);
+        g.fillRect(0, 0, blockWidth, blockHeight);
+        g.generateTexture('blockHard', blockWidth, blockHeight);
         g.clear();
 
         // Year 3 blocks - purple
-        g.fillStyle(0x9b59b6);
-        g.fillRect(0, 0, 70, 30);
-        g.generateTexture('blockVeryHard', 70, 30);
+        g.fillStyle(GameConfig.layout.blockColors.year3);
+        g.fillRect(0, 0, blockWidth, blockHeight);
+        g.generateTexture('blockVeryHard', blockWidth, blockHeight);
         g.clear();
 
         g.destroy();
@@ -147,10 +150,10 @@ export default class GameScene extends Phaser.Scene {
         this.balls = this.physics.add.group();
 
         // Create paddle - center it horizontally based on game width
-        const gameWidth = this.game.config.width;
-        this.paddle = new Paddle(this, gameWidth / 2, 480);
+        const gameWidth = GameConfig.layout.gameWidth;
+        this.paddle = new Paddle(this, gameWidth / 2, GameConfig.layout.paddle.initialY);
 
-        // Create blocks grid (16x5)
+        // Create blocks grid
         this.createBlockGrid();
 
         // Input handling
@@ -167,12 +170,13 @@ export default class GameScene extends Phaser.Scene {
      * Create the block grid
      */
     createBlockGrid() {
-        const blockWidth = 70;
-        const spacing = 74;
-        const startX = 65;
-        const startY = 50;
-        const cols = 16;
-        const rows = 5;
+        const blockWidth = GameConfig.layout.blockGrid.blockWidth;
+        const spacing = GameConfig.layout.blockGrid.spacing;
+        const startX = GameConfig.layout.blockGrid.startX;
+        const startY = GameConfig.layout.blockGrid.startY;
+        const cols = GameConfig.layout.blockGrid.columns;
+        const rows = GameConfig.layout.blockGrid.rows;
+        const rowSpacing = GameConfig.layout.blockGrid.rowSpacing;
 
         // Clear existing blocks
         this.blockGrid = Array(cols).fill().map(() => Array(rows).fill(null));
@@ -182,7 +186,7 @@ export default class GameScene extends Phaser.Scene {
         for (let col = 0; col < cols; col++) {
             for (let row = 0; row < rows; row++) {
                 const x = startX + col * spacing;
-                const y = startY + row * 40;
+                const y = startY + row * rowSpacing;
 
                 // Create a regular block
                 const block = new Block(this, x, y);
@@ -277,47 +281,48 @@ export default class GameScene extends Phaser.Scene {
     update() {
         if (!this.gameInProgress) return;
 
-        // Update paddle
+        // Update paddle position based on input
         this.paddle.update(this.cursors);
 
-        // Update all balls
-        const gameWidth = this.game.config.width;
-        const gameHeight = this.game.config.height;
+        // Update all active balls
+        const gameWidth = GameConfig.layout.gameWidth;
+        const gameHeight = GameConfig.layout.gameHeight;
 
         this.balls.getChildren().forEach(ballSprite => {
-            if (ballSprite.active) {
-                // Find the Ball instance for this sprite
-                const ball = this.findBallBySprite(ballSprite);
-                if (ball) {
-                    ball.update(gameWidth, gameHeight);
-                }
+            const ball = this.findBallBySprite(ballSprite);
+            if (ball) {
+                ball.update(gameWidth, gameHeight);
             }
         });
 
-        // Check if we need to initialize math problems
-        if (this.gameInProgress && this.blocks.countActive() > 0) {
-            const hasProblems = this.mathBlocks.some(block =>
-                block && block.sprite && block.sprite.active
-            );
+        // Check for paddle-ball collisions
+        this.physics.overlap(this.paddle.sprite, this.balls, (paddleSprite, ballSprite) => {
+            // Get ball velocity
+            const vx = ballSprite.body.velocity.x;
+            const vy = ballSprite.body.velocity.y;
 
-            if (!hasProblems) {
-                this.updateMathProblems();
+            // Only bounce if ball is moving downward (prevents multiple bounces)
+            if (vy > 0) {
+                // Calculate bounce angle based on where ball hits the paddle
+                const hitPoint = (ballSprite.x - paddleSprite.x) / (paddleSprite.width / 2);
 
-                // Potentially increase difficulty when new problems are generated
-                // This creates a progressive difficulty curve as the player advances
-                if (this.score && this.score.getScore) {
-                    const currentScore = this.score.getScore();
+                // Constrain hit point to -1 to 1 range
+                const constrainedHitPoint = Phaser.Math.Clamp(hitPoint, -1, 1);
 
-                    // Increase difficulty at certain score thresholds
-                    // For example, every 1000 points
-                    if (currentScore > 0 && currentScore % 1000 < 100) {
-                        this.increaseDifficulty();
-                    }
-                }
+                // Calculate new angle (between -60 and 60 degrees)
+                const angle = constrainedHitPoint * Math.PI / 3; // 60 degrees in radians
+
+                // Calculate new velocity components
+                const speed = Math.sqrt(vx * vx + vy * vy);
+                const newVx = Math.sin(angle) * speed;
+                const newVy = -Math.cos(angle) * speed;
+
+                // Apply new velocity
+                ballSprite.body.setVelocity(newVx, newVy);
             }
-        }
+        });
 
-        // Check for victory
+        // Check for victory condition
         if (this.blocks.countActive() === 0) {
             this.victory();
         }
