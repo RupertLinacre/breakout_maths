@@ -11,12 +11,17 @@
       margin: 0;
       padding: 0;
       background-color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .container {
-      max-width: 1250px;
       margin: 0 auto;
       padding: 20px;
+
+      width: 100%;
+      box-sizing: border-box;
     }
 
     .game-controls {
@@ -25,6 +30,7 @@
       background-color: #fff;
       border-radius: 5px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      width: 100%;
     }
 
     .control-row {
@@ -91,14 +97,33 @@
       border-radius: 5px;
       overflow: hidden;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
     }
 
     .difficulty-name {
       font-weight: bold;
       color: #3498db;
     }
+
+    #answer-input {
+      padding: 10px;
+      font-size: 18px;
+      border: 2px solid #3498db;
+      border-radius: 5px;
+      width: 200px;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    #input-container {
+      text-align: center;
+      margin-top: 20px;
+      width: 100%;
+    }
   </style>
-  <script type="module" crossorigin src="/breakout_maths/assets/index-nXQDRum8.js"></script>
+  <script type="module" crossorigin src="/breakout_maths/assets/index-iDoJBIxH.js"></script>
 </head>
 
 <body>
@@ -128,6 +153,42 @@
       </div>
     </div>
     <div id="game-container"></div>
+    <div id="input-container">
+      <input type="text" id="answer-input" placeholder="Enter your answer">
+    </div>
+
+    <details class="game-controls" style="margin-top: 20px;">
+      <summary style="cursor: pointer; font-weight: bold; padding: 5px 0;">Adjust Game Layout</summary>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+        <div class="control-row">
+          <div class="control-label">Columns:</div>
+          <input type="number" id="columns" min="1" max="100" value="50"
+            style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+        </div>
+        <div class="control-row">
+          <div class="control-label">Rows:</div>
+          <input type="number" id="rows" min="1" max="50" value="30"
+            style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+        </div>
+        <div class="control-row">
+          <div class="control-label">Side Padding:</div>
+          <input type="number" id="sidePadding" min="0" max="200" value="50"
+            style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+        </div>
+        <div class="control-row">
+          <div class="control-label">Top Padding:</div>
+          <input type="number" id="topPadding" min="0" max="200" value="50"
+            style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
+        </div>
+        <div class="control-row">
+          <div class="control-label">Paddle Deflects Balls:</div>
+          <input type="checkbox" id="paddle-deflection" style="margin-top: 5px;">
+        </div>
+      </div>
+      <div class="instructions" style="margin-top: 10px;">
+        <strong>Note:</strong> Changing these values will restart the game with the new layout.
+      </div>
+    </details>
   </div>
 
 </body>
