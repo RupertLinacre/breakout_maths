@@ -220,8 +220,9 @@ export default class GameScene extends Phaser.Scene {
      * Assign a math problem to the lowest block in a specific column
      * @param {number} column - Column index
      * @param {string|null} forcedDifficulty - Optional forced difficulty
+     * @param {number|null} forcedPositionIndex - Optional forced position index
      */
-    assignMathProblemToColumn(column, forcedDifficulty) {
+    assignMathProblemToColumn(column, forcedDifficulty, forcedPositionIndex) {
         if (!this.gameInProgress) return;
 
         // Find the lowest active block in this column
@@ -240,10 +241,20 @@ export default class GameScene extends Phaser.Scene {
         const x = lowestBlock.x;
         const y = lowestBlock.y;
 
-        // Determine difficulty based on spawn rates or forced difficulty
+        // Determine difficulty and position index based on spawn rates or forced values
         let difficulty;
+        let positionIndex;
+
         if (forcedDifficulty) {
             difficulty = forcedDifficulty;
+
+            // If difficulty is forced but position is not, use the first occurrence
+            if (forcedPositionIndex === undefined || forcedPositionIndex === null) {
+                const yearRange = GameConfig.getYearRange();
+                positionIndex = yearRange.indexOf(difficulty);
+            } else {
+                positionIndex = forcedPositionIndex;
+            }
         } else {
             // Get the current year range and spawn rates from the game config
             const yearRange = GameConfig.getYearRange();
@@ -260,6 +271,7 @@ export default class GameScene extends Phaser.Scene {
 
                 if (rand < cumulativeProbability) {
                     difficulty = yearRange[i];
+                    positionIndex = i; // This is the key - we keep track of which position in the distribution
                     break;
                 }
             }
@@ -267,14 +279,15 @@ export default class GameScene extends Phaser.Scene {
             // Fallback to the first difficulty level if none was selected
             if (!difficulty && yearRange.length > 0) {
                 difficulty = yearRange[0];
+                positionIndex = 0;
             }
         }
 
         // Destroy the regular block
         lowestBlock.destroy();
 
-        // Create a math block using the factory
-        const mathBlock = BlockFactory.createMathBlock(this, x, y, difficulty);
+        // Create a math block using the factory, passing both difficulty and position index
+        const mathBlock = BlockFactory.createMathBlock(this, x, y, difficulty, positionIndex);
 
         // Update the grid reference
         const row = Math.floor((y - 50) / 40);
