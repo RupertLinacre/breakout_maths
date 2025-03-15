@@ -4,11 +4,12 @@
  */
 const GameConfig = {
     // Default difficulty level
-    difficulty: 'year4',
+    difficulty: 'reception',
 
     // Year ranges for each difficulty tier
     // These map to the problem difficulty levels in the maths-game-problem-generator
     yearRanges: {
+
         year1: ['reception', 'year1', 'year2', 'year3'],
         year2: ['year1', 'year2', 'year3', 'year4'],
         year3: ['year2', 'year3', 'year4', 'year5'],

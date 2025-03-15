@@ -19,34 +19,30 @@ export default class BlockFactory {
             difficulty: difficulty
         };
 
-        // Configure block based on difficulty
-        // Higher year levels get more powerful ball release strategies
-        if (difficulty === 'year6') {
-            // Year 6 blocks (purple) spray many balls with short delay
-            options.texture = 'blockVeryHard';
-            options.ballReleaseStrategy = new SprayBallReleaseStrategy(15, 150); // 15 balls with 150ms delay
-        } else if (difficulty === 'year5') {
-            // Year 5 blocks (purple) spray many balls
-            options.texture = 'blockVeryHard';
-            options.ballReleaseStrategy = new SprayBallReleaseStrategy(12, 180); // 12 balls with 180ms delay
-        } else if (difficulty === 'year4') {
-            // Year 4 blocks (purple) spray balls with delay
-            options.texture = 'blockVeryHard';
-            options.ballReleaseStrategy = new SprayBallReleaseStrategy(10, 200); // 10 balls with 200ms delay
-        } else if (difficulty === 'year3') {
-            // Year 3 blocks (red) spray balls in an arc
-            options.texture = 'blockHard';
-            options.ballReleaseStrategy = new ArcBallReleaseStrategy(7); // 7 balls in an arc
-        } else if (difficulty === 'year2') {
-            // Year 2 blocks (red) spray fewer balls in an arc
-            options.texture = 'blockHard';
-            options.ballReleaseStrategy = new ArcBallReleaseStrategy(5); // 5 balls in an arc
-        } else if (difficulty === 'year1') {
-            // Year 1 blocks (orange) shoot 3 balls
+        // Get the current year range to determine the relative position of this difficulty
+        const yearRange = GameConfig.getYearRange();
+        const difficultyIndex = yearRange.indexOf(difficulty);
+
+        // Configure block based on the position in the difficulty distribution
+        // rather than the specific year level
+        if (difficultyIndex === 0) {
+            // Easiest level (50% spawn rate) - green blocks with 1 ball
+            options.texture = 'blockEasy';
+            options.ballReleaseStrategy = new StandardBallReleaseStrategy();
+        } else if (difficultyIndex === 1) {
+            // Medium level (25% spawn rate) - orange blocks with 3 balls
             options.texture = 'blockMedium';
             options.ballReleaseStrategy = new MultiBallReleaseStrategy();
+        } else if (difficultyIndex === 2) {
+            // Hard level (15% spawn rate) - red blocks with arc balls
+            options.texture = 'blockHard';
+            options.ballReleaseStrategy = new ArcBallReleaseStrategy(5);
+        } else if (difficultyIndex === 3) {
+            // Very hard level (10% spawn rate) - purple blocks with spray balls
+            options.texture = 'blockVeryHard';
+            options.ballReleaseStrategy = new SprayBallReleaseStrategy(10, 200);
         } else {
-            // Reception blocks (green) shoot 1 ball
+            // Fallback for any other difficulty - use the easiest level
             options.texture = 'blockEasy';
             options.ballReleaseStrategy = new StandardBallReleaseStrategy();
         }
