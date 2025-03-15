@@ -297,28 +297,31 @@ export default class GameScene extends Phaser.Scene {
 
         // Check for paddle-ball collisions
         this.physics.overlap(this.paddle.sprite, this.balls, (paddleSprite, ballSprite) => {
-            // Get ball velocity
-            const vx = ballSprite.body.velocity.x;
-            const vy = ballSprite.body.velocity.y;
+            // Only apply deflection if the deflectsBalls option is enabled
+            if (GameConfig.layout.paddle.deflectsBalls) {
+                // Get ball velocity
+                const vx = ballSprite.body.velocity.x;
+                const vy = ballSprite.body.velocity.y;
 
-            // Only bounce if ball is moving downward (prevents multiple bounces)
-            if (vy > 0) {
-                // Calculate bounce angle based on where ball hits the paddle
-                const hitPoint = (ballSprite.x - paddleSprite.x) / (paddleSprite.width / 2);
+                // Only bounce if ball is moving downward (prevents multiple bounces)
+                if (vy > 0) {
+                    // Calculate bounce angle based on where ball hits the paddle
+                    const hitPoint = (ballSprite.x - paddleSprite.x) / (paddleSprite.width / 2);
 
-                // Constrain hit point to -1 to 1 range
-                const constrainedHitPoint = Phaser.Math.Clamp(hitPoint, -1, 1);
+                    // Constrain hit point to -1 to 1 range
+                    const constrainedHitPoint = Phaser.Math.Clamp(hitPoint, -1, 1);
 
-                // Calculate new angle (between -60 and 60 degrees)
-                const angle = constrainedHitPoint * Math.PI / 3; // 60 degrees in radians
+                    // Calculate new angle (between -60 and 60 degrees)
+                    const angle = constrainedHitPoint * Math.PI / 3; // 60 degrees in radians
 
-                // Calculate new velocity components
-                const speed = Math.sqrt(vx * vx + vy * vy);
-                const newVx = Math.sin(angle) * speed;
-                const newVy = -Math.cos(angle) * speed;
+                    // Calculate new velocity components
+                    const speed = Math.sqrt(vx * vx + vy * vy);
+                    const newVx = Math.sin(angle) * speed;
+                    const newVy = -Math.cos(angle) * speed;
 
-                // Apply new velocity
-                ballSprite.body.setVelocity(newVx, newVy);
+                    // Apply new velocity
+                    ballSprite.body.setVelocity(newVx, newVy);
+                }
             }
         });
 

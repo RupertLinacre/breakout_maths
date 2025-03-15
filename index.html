@@ -179,6 +179,10 @@
           <input type="number" id="topPadding" min="0" max="200" value="50"
             style="padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
         </div>
+        <div class="control-row">
+          <div class="control-label">Paddle Deflects Balls:</div>
+          <input type="checkbox" id="paddle-deflection" style="margin-top: 5px;">
+        </div>
       </div>
       <div class="instructions" style="margin-top: 10px;">
         <strong>Note:</strong> Changing these values will restart the game with the new layout.
@@ -235,6 +239,9 @@
       document.getElementById('difficulty-selector').value = savedDifficulty;
       GameConfig.setDifficulty(savedDifficulty);
       updateBlockInfo(savedDifficulty);
+
+      // Initialize paddle deflection checkbox
+      document.getElementById('paddle-deflection').checked = GameConfig.layout.paddle.deflectsBalls;
 
       const checkGameInitialized = setInterval(() => {
         const game = window.game;
@@ -310,6 +317,14 @@
     document.getElementById('rows').addEventListener('change', handleLayoutChange);
     document.getElementById('sidePadding').addEventListener('change', handleLayoutChange);
     document.getElementById('topPadding').addEventListener('change', handleLayoutChange);
+
+    // Add event listener for paddle deflection checkbox
+    document.getElementById('paddle-deflection').addEventListener('change', function () {
+      GameConfig.layout.paddle.deflectsBalls = this.checked;
+      if (gameInitialized && gameScene) {
+        gameScene.restartGame();
+      }
+    });
 
     // Connect the HTML input to the game logic
     const answerInput = document.getElementById('answer-input');

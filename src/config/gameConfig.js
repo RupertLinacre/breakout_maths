@@ -73,7 +73,8 @@ const GameConfig = {
                 height: 20,
                 initialY: paddleY, // Dynamically positioned based on gameHeight
                 speed: 7,
-                cornerRadius: 10
+                cornerRadius: 10,
+                deflectsBalls: false
             },
 
             // Ball configuration
