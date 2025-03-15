@@ -77,7 +77,10 @@ export default class MathBlock extends Block {
 
         // Get the expression from the problem object
         const expression = this.problem.expression_short;
-        console.log(expression);
+        console.log('=========');
+        console.log(this.problem.expression);
+        console.log(this.problem.expression_short);
+        console.log(this.problem.answer);
 
 
         // Handle text that might be too big for blocks
