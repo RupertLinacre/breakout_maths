@@ -1,4 +1,3 @@
-
 import MathBlock from '../entities/blocks/MathBlock.js';
 import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, ArcBallReleaseStrategy, SprayBallReleaseStrategy } from '../strategies/BallReleaseStrategy.js';
 import GameConfig from '../config/gameConfig.js';
@@ -13,16 +12,20 @@ export default class BlockFactory {
      * @param {number} x - X position
      * @param {number} y - Y position
      * @param {string} difficulty - Math difficulty ('reception', 'year1', 'year2', etc.)
-     * @param {number} positionIndex - Position in the difficulty distribution (0-3)
      * @returns {MathBlock} The created block
      */
-    static createMathBlock(scene, x, y, difficulty, positionIndex) {
+    static createMathBlock(scene, x, y, difficulty) {
         let options = {
             difficulty: difficulty
         };
 
+        // Get the current year range
+        const yearRange = GameConfig.getYearRange();
+
+        // Determine the position index based on the difficulty's position in the year range
+        const positionIndex = yearRange.indexOf(difficulty);
+
         // Configure block based on the position in the difficulty distribution
-        // We now use the passed positionIndex instead of trying to determine it here
         if (positionIndex === 0) {
             // Easiest level (50% spawn rate) - green blocks with 1 ball
             options.texture = 'blockEasy';

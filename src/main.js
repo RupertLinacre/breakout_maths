@@ -15,7 +15,7 @@ const config = {
         }
     },
     scene: [GameScene, UIScene],
-
 };
 
-new Phaser.Game(config);
+// Create the game instance and expose it to the window object
+window.game = new Phaser.Game(config);

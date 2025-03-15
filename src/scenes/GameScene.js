@@ -210,9 +210,7 @@ export default class GameScene extends Phaser.Scene {
 
         // Assign problems to the lowest block in each column
         for (let col = 0; col < this.blockGrid.length; col++) {
-            // We no longer force specific difficulties for columns
-            // All difficulty distribution is handled by the spawn rate constants
-            this.assignMathProblemToColumn(col, null);
+            this.assignMathProblemToColumn(col);
         }
     }
 
@@ -239,26 +237,22 @@ export default class GameScene extends Phaser.Scene {
         const x = lowestBlock.x;
         const y = lowestBlock.y;
 
-        // Get the current year range
+        // Get the current year range and spawn rates from the game config
         const yearRange = GameConfig.getYearRange();
-
-        // Random selection based on spawn rates
         const rates = GameConfig.getSpawnRates();
+
+        // Use random number to select difficulty based on spawn rates
         const rand = Math.random();
         let cumulativeProbability = 0;
+        let difficulty = yearRange[0]; // Default to first difficulty level
 
-        // Default to first level in case none is selected
-        let difficulty = yearRange[0];
-        let positionIndex = 0;
-
-        // Find the appropriate difficulty level based on probability
+        // Find the appropriate difficulty level based on the random value
         for (let i = 0; i < yearRange.length; i++) {
             const yearLevel = yearRange[i].toUpperCase();
             cumulativeProbability += rates[yearLevel] || 0;
 
             if (rand < cumulativeProbability) {
                 difficulty = yearRange[i];
-                positionIndex = i;
                 break;
             }
         }
@@ -266,8 +260,8 @@ export default class GameScene extends Phaser.Scene {
         // Destroy the regular block
         lowestBlock.destroy();
 
-        // Create a math block using the factory, passing both difficulty and position index
-        const mathBlock = BlockFactory.createMathBlock(this, x, y, difficulty, positionIndex);
+        // Create a math block using the factory
+        const mathBlock = BlockFactory.createMathBlock(this, x, y, difficulty);
 
         // Update the grid reference
         const row = Math.floor((y - 50) / 40);
@@ -498,6 +492,21 @@ export default class GameScene extends Phaser.Scene {
 
         // Re-establish collision detection
         this.physics.add.collider(this.balls, this.blocks, this.handleBallBlockCollision, null, this);
+
+        // Reset UI scene if it exists
+        if (this.scene.get('UIScene')) {
+            const uiScene = this.scene.get('UIScene');
+            if (uiScene.score) {
+                uiScene.score = 0;
+                uiScene.scoreText.setText('Score: 0');
+            }
+            if (uiScene.messageText) {
+                uiScene.messageText.setText('');
+            }
+        }
+
+        // Log that the game has been restarted with the new difficulty
+        console.log(`Game restarted with difficulty: ${GameConfig.getDifficulty()}`);
     }
 
     /**
