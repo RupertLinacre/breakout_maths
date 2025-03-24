@@ -1,3 +1,5 @@
+import GameConfig from '../config/gameConfig.js';
+
 /**
  * Utility functions for the Math Breakout Game
  */
@@ -20,7 +22,9 @@ const Helpers = {
      * @returns {number} Column index
      */
     getBlockColumn: function (x) {
-        return Math.floor((x - 65) / 74);
+        const startX = GameConfig.layout.blockGrid.startX;
+        const spacing = GameConfig.layout.blockGrid.spacing;
+        return Math.floor((x - startX) / spacing);
     },
 };
 
