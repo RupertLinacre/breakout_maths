@@ -368,47 +368,30 @@ export default class GameScene extends Phaser.Scene {
         }
 
         const col = block.getColumn(); // Get column BEFORE potential destruction
-        let blockDestroyed = false; // Flag to track if we should assign next problem
 
-        // --- Step 2c: State-Based Collision Logic ---
+        // --- Step 3 (Correction): Simplified Collision Logic ---
+        // Original behavior: ANY block is destroyed by ball collision.
+        console.log(`Collision: Block type ${block.constructor.name} at column ${col} hit.`);
+
+        // 1. Get points from the block's onHit method (which no longer destroys)
+        const pointsAwarded = block.onHit(ballSprite.getData('ballInstance'));
+
+        // 2. Destroy the block instance (handles sprite/text cleanup)
+        block.destroy();
+
+        // 3. Update score if points were awarded
+        if (pointsAwarded > 0 && this.uiScene) {
+            this.uiScene.updateScore(pointsAwarded);
+        }
+        // -------------------------------------------------------
+
+        // If it was a MathBlock that got destroyed, remove from tracking array
         if (block instanceof MathBlock) {
-            // It's a Math Block
-            if (block.isSolved) {
-                // Math block was already solved, now destroy it on hit
-                const points = block.onHit(ballSprite.getData('ballInstance'));
-                block.destroy(); // Handles sprite and text cleanup via instance method
-                
-                if (this.uiScene) {
-                    this.uiScene.updateScore(points);
-                }
-                blockDestroyed = true; // Mark that a block was destroyed
-            } else {
-                // Unsolved math block - ball should just bounce
-                // Physics engine handles the bounce based on collider properties
-                // Apply any special effects but don't destroy
-                block.applySpecialEffect?.(ballSprite.getData('ballInstance'));
-            }
-        } else {
-            // It's a Regular Block - destroy it on hit
-            const points = block.onHit(ballSprite.getData('ballInstance'));
-            block.destroy(); // Explicitly destroy the block instance
-            
-            if (this.uiScene) {
-                this.uiScene.updateScore(points);
-            }
-            blockDestroyed = true; // Mark that a block was destroyed
+            this.mathBlocks = this.mathBlocks.filter(b => b !== block);
         }
 
-        // --- Step 2c: Assign next problem ONLY if a block was destroyed ---
-        if (blockDestroyed) {
-            // If it was a MathBlock that got destroyed, remove from tracking array
-            if (block instanceof MathBlock) {
-                this.mathBlocks = this.mathBlocks.filter(b => b !== block);
-            }
-            
-            // Now assign the next problem down in the column
-            this.assignMathProblemToColumn(col);
-        }
+        // Assign the next problem down in the column
+        this.assignMathProblemToColumn(col);
     }
 
     /**
