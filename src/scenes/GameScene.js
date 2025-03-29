@@ -426,53 +426,68 @@ export default class GameScene extends Phaser.Scene {
      * @returns {object} Result with correct flag and points
      */
     checkAnswer(answer) {
-        const matchingBlocks = []; // Array to hold all blocks matching the answer
-        let totalPoints = 0;       // Accumulate points from all solved blocks
+        let newlySolvedBlocks = []; // Track blocks solved *this time*
+        let ballsReleasedFromAny = false; // Track if any block released balls
+        let totalPointsFromNew = 0; // Accumulate points only from newly solved blocks
 
-        // 1. Iterate through ALL active, unsolved math blocks without breaking
+        // 1. Iterate through ALL active math blocks
         for (let i = 0; i < this.mathBlocks.length; i++) {
             const block = this.mathBlocks[i];
-            // Check if block is valid, active, unsolved, and the answer matches
-            if (block && block.sprite && block.sprite.active && !block.isSolved && block.checkAnswer(answer)) {
-                matchingBlocks.push(block); // Add the matching block to the list
+
+            // Check only if block is valid, active and the answer matches
+            if (block && block.sprite && block.sprite.active && block.checkAnswer(answer)) {
+
+                // 2. Always release balls if the answer matches
+                console.log(`Answer matched for block at [${block.getColumn()}, ?]. Releasing balls.`);
+                block.releaseBalls();
+                ballsReleasedFromAny = true; // Mark that *some* action happened
+
+                // 3. Check if it's the FIRST time this block is being solved
+                if (!block.isSolved) {
+                    console.log(`Block at [${block.getColumn()}, ?] is newly solved.`);
+                    block.isSolved = true;
+                    if (block.sprite) {
+                        block.sprite.setTint(0xaaaaaa); // Visual feedback
+                    }
+
+                    // Calculate points for this newly solved block
+                    const points = block.problem ? (block.problem.answer * 10) * block.scoreMultiplier : 20;
+                    totalPointsFromNew += points; // Add to total for this answer submission
+                    newlySolvedBlocks.push(block); // Add to list for potential message customization
+                }
+                // If block was already solved, we just release balls (handled above) and do nothing else here.
             }
         }
 
-        // 2. Process all the blocks found (if any)
-        if (matchingBlocks.length > 0) {
-            console.log(`Found ${matchingBlocks.length} block(s) matching answer ${answer}.`);
+        // 4. Process results after checking all blocks
+        if (ballsReleasedFromAny) {
+            // An action occurred (either new solve or re-answer ball release)
 
-            // Loop through each matching block and apply solve actions
-            for (const targetBlock of matchingBlocks) {
-                // Calculate points for this specific block
-                const points = targetBlock.problem ? (targetBlock.problem.answer * 10) * targetBlock.scoreMultiplier : 20;
-                totalPoints += points; // Add to total points
+            // Update score ONLY with points from newly solved blocks
+            if (totalPointsFromNew > 0 && this.uiScene) {
+                this.uiScene.updateScore(totalPointsFromNew);
+            }
 
-                // --- Mark as solved, provide feedback, DON'T destroy ---
-                targetBlock.isSolved = true;
-                if (targetBlock.sprite) {
-                    targetBlock.sprite.setTint(0xaaaaaa); // Visual feedback
+            // Show a message indicating success
+            let message = "Correct!";
+            if (totalPointsFromNew > 0) {
+                message += ` +${totalPointsFromNew}`;
+                if (newlySolvedBlocks.length > 1) {
+                    message += ` (${newlySolvedBlocks.length} blocks solved)`;
+                } else if (newlySolvedBlocks.length === 1) {
+                    message += ` (1 block solved)`;
                 }
-                // ----------------------------------------------------
-
-                targetBlock.releaseBalls(); // Release balls for THIS block
+            } else {
+                message += " (Balls released)"; // Indicate re-answer success
             }
-
-            // Update UI score ONCE with the total points from all solved blocks
-            if (this.uiScene) {
-                this.uiScene.updateScore(totalPoints);
-            }
-
-            // Show a single message (could customize based on matchingBlocks.length)
-            this.showMessage(`Correct! +${totalPoints} (${matchingBlocks.length} blocks)`, '#27ae60');
+            this.showMessage(message, '#27ae60');
 
             // --- assignMathProblemToColumn is NOT called here ---
-            // Collision handling takes care of replacement after destruction.
 
-            return { correct: true, points: totalPoints }; // Return success and total points
+            return { correct: true, points: totalPointsFromNew }; // Return success
 
         } else {
-            // No matching unsolved blocks found for this answer
+            // No block matched the answer at all
             if (this.uiScene) {
                 this.uiScene.updateScore(-5); // Penalty
             }
