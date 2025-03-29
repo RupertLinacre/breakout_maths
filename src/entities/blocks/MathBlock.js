@@ -164,7 +164,7 @@ export default class MathBlock extends Block {
             10 * this.scoreMultiplier;
 
         // No longer destroying the block here
-        // Destruction is now handled in GameScene.handleBallBlockCollision based on isSolved state
+        // Destruction is now handled in GameScene.handleBallBlockCollision
 
         // Return score based on difficulty and multiplier
         return points;
