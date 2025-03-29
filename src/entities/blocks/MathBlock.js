@@ -158,13 +158,13 @@ export default class MathBlock extends Block {
         // Apply any special effects
         this.applySpecialEffect(ball);
 
-        // Calculate points based on the problem BEFORE destroying it
+        // Calculate points based on the problem
         const points = this.problem ?
             (this.problem.answer * 10) * this.scoreMultiplier :
             10 * this.scoreMultiplier;
 
-        // Call destroy (which now handles text and sprite)
-        this.destroy();
+        // No longer destroying the block here
+        // Destruction is now handled in GameScene.handleBallBlockCollision based on isSolved state
 
         // Return score based on difficulty and multiplier
         return points;

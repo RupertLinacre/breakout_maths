@@ -363,26 +363,57 @@ export default class GameScene extends Phaser.Scene {
      * @param {Phaser.Physics.Arcade.Sprite} blockSprite - The block sprite
      */
     handleBallBlockCollision(ballSprite, blockSprite) {
-        // Find the Block instance for this sprite
+        if (!ballSprite.active || !blockSprite.active) {
+            return; // Ignore collision if either object is already inactive
+        }
+
         const block = this.findBlockBySprite(blockSprite);
+        if (!block) {
+            console.warn("Collision with unknown block sprite:", blockSprite);
+            return;
+        }
 
-        if (block) {
-            // Get column information before destroying the block
-            const col = block.getColumn();
-            const hadMathProblem = block instanceof MathBlock;
+        const col = block.getColumn(); // Get column BEFORE potential destruction
+        let blockDestroyed = false; // Flag to track if we should assign next problem
 
-            // Handle the hit
-            const points = block.onHit();
-
-            // Update score for ball hits (not for direct answer hits)
-            if (!hadMathProblem) {
+        // --- Step 2c: State-Based Collision Logic ---
+        if (block instanceof MathBlock) {
+            // It's a Math Block
+            if (block.isSolved) {
+                // Math block was already solved, now destroy it on hit
+                const points = block.onHit(ballSprite.getData('ballInstance'));
+                block.destroy(); // Handles sprite and text cleanup via instance method
+                
+                if (this.uiScene) {
+                    this.uiScene.updateScore(points);
+                }
+                blockDestroyed = true; // Mark that a block was destroyed
+            } else {
+                // Unsolved math block - ball should just bounce
+                // Physics engine handles the bounce based on collider properties
+                // Apply any special effects but don't destroy
+                block.applySpecialEffect?.(ballSprite.getData('ballInstance'));
+            }
+        } else {
+            // It's a Regular Block - destroy it on hit
+            const points = block.onHit(ballSprite.getData('ballInstance'));
+            block.destroy(); // Explicitly destroy the block instance
+            
+            if (this.uiScene) {
                 this.uiScene.updateScore(points);
             }
+            blockDestroyed = true; // Mark that a block was destroyed
+        }
 
-            // If it had a math problem, assign a new math problem to the next block in this column
-            if (hadMathProblem) {
-                this.assignMathProblemToColumn(col);
+        // --- Step 2c: Assign next problem ONLY if a block was destroyed ---
+        if (blockDestroyed) {
+            // If it was a MathBlock that got destroyed, remove from tracking array
+            if (block instanceof MathBlock) {
+                this.mathBlocks = this.mathBlocks.filter(b => b !== block);
             }
+            
+            // Now assign the next problem down in the column
+            this.assignMathProblemToColumn(col);
         }
     }
 
@@ -435,15 +466,11 @@ export default class GameScene extends Phaser.Scene {
                 (targetBlock.problem.answer * 10) * targetBlock.scoreMultiplier :
                 10 * targetBlock.scoreMultiplier;
 
-            // Get column information before marking the block as solved
-            const col = targetBlock.getColumn();
-
             // --- Mark as solved, provide feedback, DON'T destroy ---
             targetBlock.isSolved = true;
             if (targetBlock.sprite) {
                 targetBlock.sprite.setTint(0xaaaaaa); // Visual feedback: grey out
             }
-            // --- End of Step 2b changes ---
 
             // Use the block's ball release strategy
             targetBlock.releaseBalls();
@@ -455,9 +482,6 @@ export default class GameScene extends Phaser.Scene {
 
             // Show feedback message
             this.showMessage(`Correct! +${points}`, '#27ae60');
-
-            // Assign next problem down immediately after solving
-            this.assignMathProblemToColumn(col);
 
             return { correct: true, points: points };
         } else {
