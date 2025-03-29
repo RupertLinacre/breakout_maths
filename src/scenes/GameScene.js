@@ -229,23 +229,34 @@ export default class GameScene extends Phaser.Scene {
      * @param {number} column - Column index
      */
     assignMathProblemToColumn(column) {
-        if (!this.gameInProgress) return;
+        if (!this.gameInProgress || column < 0 || column >= this.blockGrid.length) return;
 
         // Find the lowest active block in this column
-        const blocksInColumn = this.blockGrid[column].filter(block =>
-            block && block.sprite && block.sprite.active
-        );
+        let lowestBlockInstance = null;
+        let lowestBlockRow = -1;
+
+        // Find the lowest block instance in the grid column
+        for (let row = this.blockGrid[column].length - 1; row >= 0; row--) {
+            const block = this.blockGrid[column][row];
+            if (block && block.sprite && block.sprite.active) {
+                lowestBlockInstance = block;
+                lowestBlockRow = row;
+                break;
+            }
+        }
 
         // If no blocks left in this column, nothing to do
-        if (blocksInColumn.length === 0) return;
+        if (!lowestBlockInstance) return;
 
-        // Sort by y position (descending) to find the lowest block
-        blocksInColumn.sort((a, b) => b.y - a.y);
-        const lowestBlock = blocksInColumn[0];
+        const x = lowestBlockInstance.x;
+        const y = lowestBlockInstance.y;
 
-        // Replace the regular block with a math block
-        const x = lowestBlock.x;
-        const y = lowestBlock.y;
+        // --- Ensure the instance being replaced is destroyed ---
+        lowestBlockInstance.destroy(); // Calls the instance's destroy (handles sprite/text)
+        this.blockGrid[column][lowestBlockRow] = null; // Clear grid reference
+        // Remove from mathBlocks tracking array if it was there
+        this.mathBlocks = this.mathBlocks.filter(b => b !== lowestBlockInstance);
+        // -------------------------------------------------------
 
         // Get the current year range and spawn rates from the game config
         const yearRange = GameConfig.getYearRange();
@@ -267,15 +278,16 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
-        // Destroy the regular block
-        lowestBlock.destroy();
-
         // Create a math block using the factory
         const mathBlock = BlockFactory.createMathBlock(this, x, y, difficulty);
 
+        if (!mathBlock || !mathBlock.sprite) {
+            console.error(`Failed to create MathBlock replacement in column ${column}`);
+            return;
+        }
+
         // Update the grid reference
-        const row = Math.floor((y - 50) / 40);
-        this.blockGrid[column][row] = mathBlock;
+        this.blockGrid[column][lowestBlockRow] = mathBlock;
 
         // Add to math blocks array for tracking
         this.mathBlocks.push(mathBlock);
@@ -520,51 +532,57 @@ export default class GameScene extends Phaser.Scene {
      * Clean up game objects for restart
      */
     cleanupGameObjects() {
+        console.log("Cleaning up game objects...");
+
         try {
             // Remove all collision handlers first
-            this.physics.world.colliders.destroy();
+            if (this.physics.world) {
+                this.physics.world.colliders.destroy();
+            }
 
-            // Properly destroy ball instances using the data association
+            // Clean up Balls (using instance destroy from previous improvements)
             if (this.balls) {
                 const ballSpritesToClean = this.balls.getChildren();
                 ballSpritesToClean.forEach(ballSprite => {
                     const ballInstance = ballSprite.getData('ballInstance');
-                    if (ballInstance) {
-                        ballInstance.destroy(); // Call instance's destroy
-                    } else if (ballSprite.active) {
-                        // Destroy orphaned sprites directly
-                        ballSprite.destroy();
-                    }
+                    if (ballInstance) ballInstance.destroy();
+                    else if (ballSprite.active) ballSprite.destroy();
                 });
-                // Clear the group after handling all balls
                 this.balls.clear(true, true);
             }
 
-            // Safely destroy block objects
-            this.blocks.clear(true, true);
-
-            // Clear block grid
-            for (let col = 0; col < this.blockGrid.length; col++) {
-                for (let row = 0; row < this.blockGrid[col].length; row++) {
-                    const block = this.blockGrid[col][row];
-                    if (block) {
-                        block.destroy();
-                        this.blockGrid[col][row] = null;
+            // --- Clean up Blocks using grid instances ---
+            console.log("Cleaning up blocks from grid...");
+            if (this.blockGrid && this.blockGrid.length > 0) {
+                for (let col = 0; col < this.blockGrid.length; col++) {
+                    if (this.blockGrid[col]) {
+                        for (let row = 0; row < this.blockGrid[col].length; row++) {
+                            const block = this.blockGrid[col][row];
+                            // Check if it's a valid block instance with a destroy method
+                            if (block && typeof block.destroy === 'function') {
+                                block.destroy(); // Call instance destroy (handles text)
+                            }
+                            // No need to nullify grid[col][row] here, whole array is reset below
+                        }
                     }
                 }
             }
+            this.blockGrid = []; // Reset the grid tracking array
+            this.mathBlocks = []; // Reset the specific mathblock tracking array
 
-            // Clear math blocks
-            this.mathBlocks.forEach(block => {
-                if (block) block.destroy();
-            });
-            this.mathBlocks = [];
+            // Also ensure the physics group for blocks is cleared of sprites
+            if (this.blocks) {
+                this.blocks.clear(true, true); // Destroy any remaining sprites in the group
+            }
+            console.log("Block cleanup finished.");
+            // -------------------------------------------
 
             // Destroy the paddle if it exists
             if (this.paddle) {
                 this.paddle.destroy();
                 this.paddle = null;
             }
+            console.log("Cleanup complete.");
         } catch (e) {
             console.error("Error cleaning up game objects:", e);
         }
