@@ -1,3 +1,4 @@
+// src/entities/Ball.js
 import GameConfig from '../config/gameConfig.js';
 
 /**
@@ -13,9 +14,16 @@ export default class Ball {
     constructor(scene, x, y) {
         this.scene = scene;
         this.sprite = scene.balls.create(x, y, 'ball');
-        this.sprite.setCollideWorldBounds(false);
+        this.sprite.setCollideWorldBounds(false); // We handle bounds manually mostly
         this.sprite.setBounce(1);
         this.speed = GameConfig.layout.ball.speed;
+
+        // Store instance reference on sprite's data manager
+        if (this.sprite) {
+            this.sprite.setData('ballInstance', this);
+        } else {
+            console.error("Failed to create ball sprite at", x, y);
+        }
     }
 
     /**
@@ -24,6 +32,8 @@ export default class Ball {
      * @param {number} [targetY] - Target Y coordinate (if first param is X)
      */
     shoot(targetXorDirection, targetY) {
+        if (!this.sprite || !this.sprite.body) return; // Guard clause
+
         if (typeof targetXorDirection === 'number' && typeof targetY === 'number') {
             // Shoot toward specific coordinates
             const angle = Phaser.Math.Angle.Between(
@@ -33,51 +43,78 @@ export default class Ball {
                 targetY
             );
             this.scene.physics.velocityFromRotation(angle, this.speed, this.sprite.body.velocity);
-        } else {
+        } else if (typeof targetXorDirection === 'object' && targetXorDirection !== null) {
             // Use provided direction vector
             const direction = targetXorDirection;
-            const norm = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
+            const norm = Math.sqrt(direction.x * direction.x + direction.y * direction.y) || 1;
             this.sprite.setVelocity(
-                direction.x / norm * this.speed,
-                direction.y / norm * this.speed
+                (direction.x / norm) * this.speed,
+                (direction.y / norm) * this.speed
             );
+        } else {
+            console.warn("Invalid arguments for Ball.shoot:", targetXorDirection, targetY);
+            this.sprite.setVelocity(0, -this.speed); // Default upwards
         }
     }
 
     /**
      * Update ball position and handle boundary collisions
+     * Called BY GameScene's update loop FOR each ball instance.
      * @param {number} width - Game width
      * @param {number} height - Game height
      */
     update(width, height) {
-        if (!this.sprite.active) return;
+        // Guard clause
+        if (!this.sprite || !this.sprite.active || !this.sprite.body) {
+            return;
+        }
 
         // Handle manual wall collisions (top, left, right only)
-        if (this.sprite.x <= 0) {
+        let bounced = false;
+        if (this.sprite.x <= 0 && this.sprite.body.velocity.x < 0) {
             this.sprite.x = 1;
-            this.sprite.body.velocity.x = Math.abs(this.sprite.body.velocity.x);
-        } else if (this.sprite.x >= width - this.sprite.width) {
+            this.sprite.body.velocity.x *= -1;
+            bounced = true;
+        } else if (this.sprite.x >= width - this.sprite.width && this.sprite.body.velocity.x > 0) {
             this.sprite.x = width - this.sprite.width - 1;
-            this.sprite.body.velocity.x = -Math.abs(this.sprite.body.velocity.x);
+            this.sprite.body.velocity.x *= -1;
+            bounced = true;
         }
 
-        if (this.sprite.y <= 0) {
+        if (this.sprite.y <= 0 && this.sprite.body.velocity.y < 0) {
             this.sprite.y = 1;
-            this.sprite.body.velocity.y = Math.abs(this.sprite.body.velocity.y);
+            this.sprite.body.velocity.y *= -1;
+            bounced = true;
         }
 
-        // Remove balls that fall off screen (no bounce at bottom)
+        // Destroy ball if it falls off bottom
         if (this.sprite.y > height) {
-            this.destroy();
+            this.destroy(); // Call Ball's own destroy method
         }
     }
 
     /**
-     * Destroy this ball
+     * Destroy this ball and clean up references
      */
     destroy() {
-        if (this.sprite && this.sprite.active) {
+        // Guard clause: ensure sprite exists before trying to access its properties or methods
+        if (!this.sprite) {
+            return;
+        }
+
+        // --- Corrected Data Removal ---
+        // Access the 'data' property to use the Data Manager's remove method
+        if (this.sprite.data) { // Check if data manager exists (it should for sprites)
+            this.sprite.data.remove('ballInstance');
+        }
+        // -----------------------------
+
+        // Destroy the Phaser sprite if it's still active
+        if (this.sprite.active) {
             this.sprite.destroy();
         }
+
+        // Nullify the reference to help GC and prevent errors
+        this.sprite = null;
     }
 }

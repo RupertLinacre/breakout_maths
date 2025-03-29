@@ -229,23 +229,34 @@ export default class GameScene extends Phaser.Scene {
      * @param {number} column - Column index
      */
     assignMathProblemToColumn(column) {
-        if (!this.gameInProgress) return;
+        if (!this.gameInProgress || column < 0 || column >= this.blockGrid.length) return;
 
         // Find the lowest active block in this column
-        const blocksInColumn = this.blockGrid[column].filter(block =>
-            block && block.sprite && block.sprite.active
-        );
+        let lowestBlockInstance = null;
+        let lowestBlockRow = -1;
+
+        // Find the lowest block instance in the grid column
+        for (let row = this.blockGrid[column].length - 1; row >= 0; row--) {
+            const block = this.blockGrid[column][row];
+            if (block && block.sprite && block.sprite.active) {
+                lowestBlockInstance = block;
+                lowestBlockRow = row;
+                break;
+            }
+        }
 
         // If no blocks left in this column, nothing to do
-        if (blocksInColumn.length === 0) return;
+        if (!lowestBlockInstance) return;
 
-        // Sort by y position (descending) to find the lowest block
-        blocksInColumn.sort((a, b) => b.y - a.y);
-        const lowestBlock = blocksInColumn[0];
+        const x = lowestBlockInstance.x;
+        const y = lowestBlockInstance.y;
 
-        // Replace the regular block with a math block
-        const x = lowestBlock.x;
-        const y = lowestBlock.y;
+        // --- Ensure the instance being replaced is destroyed ---
+        lowestBlockInstance.destroy(); // Calls the instance's destroy (handles sprite/text)
+        this.blockGrid[column][lowestBlockRow] = null; // Clear grid reference
+        // Remove from mathBlocks tracking array if it was there
+        this.mathBlocks = this.mathBlocks.filter(b => b !== lowestBlockInstance);
+        // -------------------------------------------------------
 
         // Get the current year range and spawn rates from the game config
         const yearRange = GameConfig.getYearRange();
@@ -267,15 +278,16 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
-        // Destroy the regular block
-        lowestBlock.destroy();
-
         // Create a math block using the factory
         const mathBlock = BlockFactory.createMathBlock(this, x, y, difficulty);
 
+        if (!mathBlock || !mathBlock.sprite) {
+            console.error(`Failed to create MathBlock replacement in column ${column}`);
+            return;
+        }
+
         // Update the grid reference
-        const row = Math.floor((y - 50) / 40);
-        this.blockGrid[column][row] = mathBlock;
+        this.blockGrid[column][lowestBlockRow] = mathBlock;
 
         // Add to math blocks array for tracking
         this.mathBlocks.push(mathBlock);
@@ -290,16 +302,24 @@ export default class GameScene extends Phaser.Scene {
         // Update paddle position based on input
         this.paddle.update(this.cursors);
 
-        // Update all active balls
+        // Update all active balls - CORRECTED BALL UPDATE LOOP
         const gameWidth = GameConfig.layout.gameWidth;
         const gameHeight = GameConfig.layout.gameHeight;
+        const activeBallSprites = this.balls.getChildren(); // Get array copy
 
-        this.balls.getChildren().forEach(ballSprite => {
-            const ball = this.findBallBySprite(ballSprite);
-            if (ball) {
-                ball.update(gameWidth, gameHeight);
+        for (const ballSprite of activeBallSprites) {
+            if (!ballSprite || !ballSprite.active) continue; // Skip inactive sprites
+
+            const ballInstance = ballSprite.getData('ballInstance');
+            if (ballInstance) {
+                // Call the Ball instance's own update method
+                ballInstance.update(gameWidth, gameHeight);
+            } else {
+                // Handle potential orphaned sprites (log & destroy)
+                console.warn("Orphaned ball sprite found in update loop, destroying:", ballSprite);
+                ballSprite.destroy();
             }
-        });
+        }
 
         // Check for paddle-ball collisions
         this.physics.overlap(this.paddle.sprite, this.balls, (paddleSprite, ballSprite) => {
@@ -338,68 +358,56 @@ export default class GameScene extends Phaser.Scene {
     }
 
     /**
-     * Find a Ball instance by its sprite
-     * @param {Phaser.Physics.Arcade.Sprite} sprite - The sprite to find
-     * @returns {Ball|null} The Ball instance or null
-     */
-    findBallBySprite(sprite) {
-        // This is a simplified approach - in a real implementation,
-        // you might want to maintain a mapping of sprites to Ball instances
-        return {
-            sprite: sprite,
-            update: (width, height) => {
-                // Handle manual wall collisions (top, left, right only)
-                if (sprite.x <= 0) {
-                    sprite.x = 1;
-                    sprite.body.velocity.x = Math.abs(sprite.body.velocity.x);
-                } else if (sprite.x >= width - sprite.width) {
-                    sprite.x = width - sprite.width - 1;
-                    sprite.body.velocity.x = -Math.abs(sprite.body.velocity.x);
-                }
-
-                if (sprite.y <= 0) {
-                    sprite.y = 1;
-                    sprite.body.velocity.y = Math.abs(sprite.body.velocity.y);
-                }
-
-                // Remove balls that fall off screen (no bounce at bottom)
-                if (sprite.y > height) {
-                    sprite.destroy();
-                }
-            },
-            destroy: () => {
-                if (sprite && sprite.active) {
-                    sprite.destroy();
-                }
-            }
-        };
-    }
-
-    /**
      * Handle collision between a ball and a block
      * @param {Phaser.Physics.Arcade.Sprite} ballSprite - The ball sprite
      * @param {Phaser.Physics.Arcade.Sprite} blockSprite - The block sprite
      */
     handleBallBlockCollision(ballSprite, blockSprite) {
-        // Find the Block instance for this sprite
+        if (!ballSprite.active || !blockSprite.active) {
+            return; // Ignore collision if either object is already inactive
+        }
+
         const block = this.findBlockBySprite(blockSprite);
+        if (!block) {
+            console.warn("Collision with unknown block sprite:", blockSprite);
+            return;
+        }
 
-        if (block) {
-            // Get column information before destroying the block
-            const col = block.getColumn();
-            const hadMathProblem = block instanceof MathBlock;
+        const col = block.getColumn(); // Get column BEFORE potential destruction
 
-            // Handle the hit
-            const points = block.onHit();
+        // --- Step 3 (Correction): Simplified Collision Logic ---
+        // Original behavior: ANY block is destroyed by ball collision.
+        console.log(`Collision: Block type ${block.constructor.name} at column ${col} hit.`);
 
-            // Update score for ball hits (not for direct answer hits)
-            if (!hadMathProblem) {
-                this.uiScene.updateScore(points);
-            }
+        // 1. Get points from the block's onHit method (which no longer destroys)
+        const pointsAwarded = block.onHit(ballSprite.getData('ballInstance'));
 
-            // If it had a math problem, assign a new math problem to the next block in this column
-            if (hadMathProblem) {
-                this.assignMathProblemToColumn(col);
+        // 2. Destroy the block instance (handles sprite/text cleanup)
+        block.destroy();
+
+        // 3. Update score if points were awarded
+        if (pointsAwarded > 0 && this.uiScene) {
+            this.uiScene.updateScore(pointsAwarded);
+        }
+        // -------------------------------------------------------
+
+        // If it was a MathBlock that got destroyed, remove from tracking array
+        // and assign a new math problem to the column
+        if (block instanceof MathBlock) {
+            console.log(`MathBlock destroyed in column ${col}. Assigning new problem.`);
+            this.mathBlocks = this.mathBlocks.filter(b => b !== block);
+
+            // Only assign a new math problem if the destroyed block was a MathBlock
+            this.assignMathProblemToColumn(col);
+        } else {
+            console.log(`Regular Block destroyed in column ${col}. No problem regeneration needed.`);
+            // For regular blocks, make sure to update the grid reference but don't regenerate math problems
+            let row = -1;
+            if (this.blockGrid[col]) {
+                row = this.blockGrid[col].findIndex(b => b === block);
+                if (row !== -1) {
+                    this.blockGrid[col][row] = null; // Clear the grid reference
+                }
             }
         }
     }
@@ -436,27 +444,84 @@ export default class GameScene extends Phaser.Scene {
      * @returns {object} Result with correct flag and points
      */
     checkAnswer(answer) {
-        // Find matching problem
-        let targetBlock = null;
+        let newlySolvedBlocks = []; // Track blocks solved *this time*
+        let ballsReleasedFromAny = false; // Track if any block released balls
+        let totalPointsFromNew = 0; // Accumulate points only from newly solved blocks
 
+        // 1. Iterate through ALL active math blocks
         for (let i = 0; i < this.mathBlocks.length; i++) {
             const block = this.mathBlocks[i];
+
+            // Check only if block is valid, active and the answer matches
             if (block && block.sprite && block.sprite.active && block.checkAnswer(answer)) {
-                targetBlock = block;
-                break;
+
+                // 2. Always release balls if the answer matches
+                console.log(`Answer matched for block at [${block.getColumn()}, ?]. Releasing balls.`);
+                block.releaseBalls();
+                ballsReleasedFromAny = true; // Mark that *some* action happened
+
+                // 3. Check if it's the FIRST time this block is being solved
+                if (!block.isSolved) {
+                    console.log(`Block at [${block.getColumn()}, ?] is newly solved.`);
+                    block.isSolved = true;
+                    if (block.sprite) {
+                        block.sprite.setTint(0xaaaaaa); // Visual feedback
+                    }
+
+                    // Calculate points for this newly solved block
+                    const points = block.problem ? (block.problem.answer * 10) * block.scoreMultiplier : 20;
+                    totalPointsFromNew += points; // Add to total for this answer submission
+                    newlySolvedBlocks.push(block); // Add to list for potential message customization
+                }
+                // If block was already solved, we just release balls (handled above) and do nothing else here.
             }
         }
 
-        if (targetBlock) {
-            // Calculate points based on the problem's answer
-            const points = targetBlock.problem.answer * 10;
+        // 4. Process results after checking all blocks
+        if (ballsReleasedFromAny) {
+            // An action occurred (either new solve or re-answer ball release)
 
-            // Use the block's ball release strategy
-            targetBlock.releaseBalls();
+            // Update score ONLY with points from newly solved blocks
+            if (totalPointsFromNew > 0 && this.uiScene) {
+                this.uiScene.updateScore(totalPointsFromNew);
+            }
 
-            return { correct: true, points: points };
+            // Show a message indicating success
+            let message = "Correct!";
+            if (totalPointsFromNew > 0) {
+                message += ` +${totalPointsFromNew}`;
+                if (newlySolvedBlocks.length > 1) {
+                    message += ` (${newlySolvedBlocks.length} blocks solved)`;
+                } else if (newlySolvedBlocks.length === 1) {
+                    message += ` (1 block solved)`;
+                }
+            } else {
+                message += " (Balls released)"; // Indicate re-answer success
+            }
+            this.showMessage(message, '#27ae60');
+
+            // --- assignMathProblemToColumn is NOT called here ---
+
+            return { correct: true, points: totalPointsFromNew }; // Return success
+
         } else {
-            return { correct: false, points: 0 };
+            // No block matched the answer at all
+            if (this.uiScene) {
+                this.uiScene.updateScore(-5); // Penalty
+            }
+            this.showMessage('Try again!', '#e74c3c');
+            return { correct: false, points: 0 }; // Return failure
+        }
+    }
+
+    /**
+     * Show a message to the player
+     * @param {string} text - Message text
+     * @param {string} color - Text color (hex)
+     */
+    showMessage(text, color) {
+        if (this.uiScene && this.uiScene.showMessage) {
+            this.uiScene.showMessage(text, color);
         }
     }
 
@@ -550,36 +615,57 @@ export default class GameScene extends Phaser.Scene {
      * Clean up game objects for restart
      */
     cleanupGameObjects() {
+        console.log("Cleaning up game objects...");
+
         try {
             // Remove all collision handlers first
-            this.physics.world.colliders.destroy();
+            if (this.physics.world) {
+                this.physics.world.colliders.destroy();
+            }
 
-            // Safely destroy all game objects
-            this.balls.clear(true, true);
-            this.blocks.clear(true, true);
+            // Clean up Balls (using instance destroy from previous improvements)
+            if (this.balls) {
+                const ballSpritesToClean = this.balls.getChildren();
+                ballSpritesToClean.forEach(ballSprite => {
+                    const ballInstance = ballSprite.getData('ballInstance');
+                    if (ballInstance) ballInstance.destroy();
+                    else if (ballSprite.active) ballSprite.destroy();
+                });
+                this.balls.clear(true, true);
+            }
 
-            // Clear block grid
-            for (let col = 0; col < this.blockGrid.length; col++) {
-                for (let row = 0; row < this.blockGrid[col].length; row++) {
-                    const block = this.blockGrid[col][row];
-                    if (block) {
-                        block.destroy();
-                        this.blockGrid[col][row] = null;
+            // --- Clean up Blocks using grid instances ---
+            console.log("Cleaning up blocks from grid...");
+            if (this.blockGrid && this.blockGrid.length > 0) {
+                for (let col = 0; col < this.blockGrid.length; col++) {
+                    if (this.blockGrid[col]) {
+                        for (let row = 0; row < this.blockGrid[col].length; row++) {
+                            const block = this.blockGrid[col][row];
+                            // Check if it's a valid block instance with a destroy method
+                            if (block && typeof block.destroy === 'function') {
+                                block.destroy(); // Call instance destroy (handles text)
+                            }
+                            // No need to nullify grid[col][row] here, whole array is reset below
+                        }
                     }
                 }
             }
+            this.blockGrid = []; // Reset the grid tracking array
+            this.mathBlocks = []; // Reset the specific mathblock tracking array
 
-            // Clear math blocks
-            this.mathBlocks.forEach(block => {
-                if (block) block.destroy();
-            });
-            this.mathBlocks = [];
+            // Also ensure the physics group for blocks is cleared of sprites
+            if (this.blocks) {
+                this.blocks.clear(true, true); // Destroy any remaining sprites in the group
+            }
+            console.log("Block cleanup finished.");
+            // -------------------------------------------
 
             // Destroy the paddle if it exists
             if (this.paddle) {
                 this.paddle.destroy();
                 this.paddle = null;
             }
+            console.log("Cleanup complete.");
         } catch (e) {
             console.error("Error cleaning up game objects:", e);
         }
