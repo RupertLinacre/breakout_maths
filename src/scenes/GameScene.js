@@ -432,49 +432,58 @@ export default class GameScene extends Phaser.Scene {
      * @returns {object} Result with correct flag and points
      */
     checkAnswer(answer) {
-        // Find matching problem
-        let targetBlock = null;
+        const matchingBlocks = []; // Array to hold all blocks matching the answer
+        let totalPoints = 0;       // Accumulate points from all solved blocks
 
+        // 1. Iterate through ALL active, unsolved math blocks without breaking
         for (let i = 0; i < this.mathBlocks.length; i++) {
             const block = this.mathBlocks[i];
+            // Check if block is valid, active, unsolved, and the answer matches
             if (block && block.sprite && block.sprite.active && !block.isSolved && block.checkAnswer(answer)) {
-                targetBlock = block;
-                break;
+                matchingBlocks.push(block); // Add the matching block to the list
             }
         }
 
-        if (targetBlock) {
-            // Calculate points based on the problem's answer and the block's score multiplier
-            const points = targetBlock.problem ?
-                (targetBlock.problem.answer * 10) * targetBlock.scoreMultiplier :
-                10 * targetBlock.scoreMultiplier;
+        // 2. Process all the blocks found (if any)
+        if (matchingBlocks.length > 0) {
+            console.log(`Found ${matchingBlocks.length} block(s) matching answer ${answer}.`);
 
-            // --- Mark as solved, provide feedback, DON'T destroy ---
-            targetBlock.isSolved = true;
-            if (targetBlock.sprite) {
-                targetBlock.sprite.setTint(0xaaaaaa); // Visual feedback: grey out
+            // Loop through each matching block and apply solve actions
+            for (const targetBlock of matchingBlocks) {
+                // Calculate points for this specific block
+                const points = targetBlock.problem ? (targetBlock.problem.answer * 10) * targetBlock.scoreMultiplier : 20;
+                totalPoints += points; // Add to total points
+
+                // --- Mark as solved, provide feedback, DON'T destroy ---
+                targetBlock.isSolved = true;
+                if (targetBlock.sprite) {
+                    targetBlock.sprite.setTint(0xaaaaaa); // Visual feedback
+                }
+                // ----------------------------------------------------
+
+                targetBlock.releaseBalls(); // Release balls for THIS block
             }
 
-            // Use the block's ball release strategy
-            targetBlock.releaseBalls();
-
-            // Update score
+            // Update UI score ONCE with the total points from all solved blocks
             if (this.uiScene) {
-                this.uiScene.updateScore(points);
+                this.uiScene.updateScore(totalPoints);
             }
 
-            // Show feedback message
-            this.showMessage(`Correct! +${points}`, '#27ae60');
+            // Show a single message (could customize based on matchingBlocks.length)
+            this.showMessage(`Correct! +${totalPoints} (${matchingBlocks.length} blocks)`, '#27ae60');
 
-            return { correct: true, points: points };
+            // --- assignMathProblemToColumn is NOT called here ---
+            // Collision handling takes care of replacement after destruction.
+
+            return { correct: true, points: totalPoints }; // Return success and total points
+
         } else {
-            // No matching unsolved block found, or answer was wrong
+            // No matching unsolved blocks found for this answer
             if (this.uiScene) {
-                this.uiScene.updateScore(-5);
+                this.uiScene.updateScore(-5); // Penalty
             }
-
             this.showMessage('Try again!', '#e74c3c');
-            return { correct: false, points: 0 };
+            return { correct: false, points: 0 }; // Return failure
         }
     }
 
