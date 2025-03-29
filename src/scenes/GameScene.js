@@ -284,16 +284,24 @@ export default class GameScene extends Phaser.Scene {
         // Update paddle position based on input
         this.paddle.update(this.cursors);
 
-        // Update all active balls
+        // Update all active balls - CORRECTED BALL UPDATE LOOP
         const gameWidth = GameConfig.layout.gameWidth;
         const gameHeight = GameConfig.layout.gameHeight;
+        const activeBallSprites = this.balls.getChildren(); // Get array copy
 
-        this.balls.getChildren().forEach(ballSprite => {
-            const ball = this.findBallBySprite(ballSprite);
-            if (ball) {
-                ball.update(gameWidth, gameHeight);
+        for (const ballSprite of activeBallSprites) {
+            if (!ballSprite || !ballSprite.active) continue; // Skip inactive sprites
+
+            const ballInstance = ballSprite.getData('ballInstance');
+            if (ballInstance) {
+                // Call the Ball instance's own update method
+                ballInstance.update(gameWidth, gameHeight);
+            } else {
+                // Handle potential orphaned sprites (log & destroy)
+                console.warn("Orphaned ball sprite found in update loop, destroying:", ballSprite);
+                ballSprite.destroy();
             }
-        });
+        }
 
         // Check for paddle-ball collisions
         this.physics.overlap(this.paddle.sprite, this.balls, (paddleSprite, ballSprite) => {
@@ -329,44 +337,6 @@ export default class GameScene extends Phaser.Scene {
         if (this.blocks.countActive() === 0) {
             this.victory();
         }
-    }
-
-    /**
-     * Find a Ball instance by its sprite
-     * @param {Phaser.Physics.Arcade.Sprite} sprite - The sprite to find
-     * @returns {Ball|null} The Ball instance or null
-     */
-    findBallBySprite(sprite) {
-        // This is a simplified approach - in a real implementation,
-        // you might want to maintain a mapping of sprites to Ball instances
-        return {
-            sprite: sprite,
-            update: (width, height) => {
-                // Handle manual wall collisions (top, left, right only)
-                if (sprite.x <= 0) {
-                    sprite.x = 1;
-                    sprite.body.velocity.x = Math.abs(sprite.body.velocity.x);
-                } else if (sprite.x >= width - sprite.width) {
-                    sprite.x = width - sprite.width - 1;
-                    sprite.body.velocity.x = -Math.abs(sprite.body.velocity.x);
-                }
-
-                if (sprite.y <= 0) {
-                    sprite.y = 1;
-                    sprite.body.velocity.y = Math.abs(sprite.body.velocity.y);
-                }
-
-                // Remove balls that fall off screen (no bounce at bottom)
-                if (sprite.y > height) {
-                    sprite.destroy();
-                }
-            },
-            destroy: () => {
-                if (sprite && sprite.active) {
-                    sprite.destroy();
-                }
-            }
-        };
     }
 
     /**
@@ -540,8 +510,23 @@ export default class GameScene extends Phaser.Scene {
             // Remove all collision handlers first
             this.physics.world.colliders.destroy();
 
-            // Safely destroy all game objects
-            this.balls.clear(true, true);
+            // Properly destroy ball instances using the data association
+            if (this.balls) {
+                const ballSpritesToClean = this.balls.getChildren();
+                ballSpritesToClean.forEach(ballSprite => {
+                    const ballInstance = ballSprite.getData('ballInstance');
+                    if (ballInstance) {
+                        ballInstance.destroy(); // Call instance's destroy
+                    } else if (ballSprite.active) {
+                        // Destroy orphaned sprites directly
+                        ballSprite.destroy();
+                    }
+                });
+                // Clear the group after handling all balls
+                this.balls.clear(true, true);
+            }
+
+            // Safely destroy block objects
             this.blocks.clear(true, true);
 
             // Clear block grid
