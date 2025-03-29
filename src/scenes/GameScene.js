@@ -48,6 +48,7 @@ export default class GameScene extends Phaser.Scene {
         this.gameInProgress = true;
         this.blockGrid = [];
         this.mathBlocks = [];
+        this.uiController = null; // Add property
     }
 
     /**
@@ -142,6 +143,9 @@ export default class GameScene extends Phaser.Scene {
      * Create game objects
      */
     create() {
+        // Get reference to the UI Controller passed via config
+        this.uiController = this.sys.game.config.uiController;
+
         // Reset difficulty to initial values at the start of a new game
         this.resetDifficulty();
 
@@ -164,6 +168,8 @@ export default class GameScene extends Phaser.Scene {
 
         // Get reference to UI scene
         this.uiScene = this.scene.get('UIScene');
+
+        console.log("Game Scene Create Complete");
     }
 
     /**
@@ -477,8 +483,14 @@ export default class GameScene extends Phaser.Scene {
         this.gameInProgress = false;
         this.physics.pause();
 
-        // Tell UI scene to show victory screen
-        this.uiScene.showVictory();
+        // Tell UI Scene to show victory screen
+        const uiScene = this.scene.get('UIScene'); // Get sibling scene
+        uiScene.showVictory();
+
+        // Tell UI Controller to disable the external input
+        if (this.uiController) {
+            this.uiController.disableInput(true);
+        }
     }
 
     /**
@@ -511,10 +523,7 @@ export default class GameScene extends Phaser.Scene {
 
             // Reset score
             if (uiScene.score !== undefined) {
-                uiScene.score = 0;
-                if (uiScene.scoreText) {
-                    uiScene.scoreText.setText('Score: 0');
-                }
+                uiScene.resetScoreDisplay?.() || (uiScene.score = 0, uiScene.scoreText?.setText('Score: 0'));
             }
 
             // Clear any messages
@@ -526,6 +535,11 @@ export default class GameScene extends Phaser.Scene {
             const width = this.game.config.width;
             const height = this.game.config.height;
             this.game.events.emit('resize', width, height);
+        }
+
+        // Tell UI Controller to focus the input
+        if (this.uiController) {
+            this.uiController.focusInput();
         }
 
         // Log that the game has been restarted with the new difficulty
