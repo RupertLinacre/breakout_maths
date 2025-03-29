@@ -392,12 +392,24 @@ export default class GameScene extends Phaser.Scene {
         // -------------------------------------------------------
 
         // If it was a MathBlock that got destroyed, remove from tracking array
+        // and assign a new math problem to the column
         if (block instanceof MathBlock) {
+            console.log(`MathBlock destroyed in column ${col}. Assigning new problem.`);
             this.mathBlocks = this.mathBlocks.filter(b => b !== block);
-        }
 
-        // Assign the next problem down in the column
-        this.assignMathProblemToColumn(col);
+            // Only assign a new math problem if the destroyed block was a MathBlock
+            this.assignMathProblemToColumn(col);
+        } else {
+            console.log(`Regular Block destroyed in column ${col}. No problem regeneration needed.`);
+            // For regular blocks, make sure to update the grid reference but don't regenerate math problems
+            let row = -1;
+            if (this.blockGrid[col]) {
+                row = this.blockGrid[col].findIndex(b => b === block);
+                if (row !== -1) {
+                    this.blockGrid[col][row] = null; // Clear the grid reference
+                }
+            }
+        }
     }
 
     /**
