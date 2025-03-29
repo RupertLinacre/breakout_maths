@@ -12,12 +12,16 @@ export default class UIScene extends Phaser.Scene {
         super({ key: 'UIScene', active: true });
         this.score = 0;
         this.victoryElements = null;
+        this.uiController = null; // Add property
     }
 
     /**
      * Create UI elements
      */
     create() {
+        // Get reference to the UI Controller
+        this.uiController = this.sys.game.config.uiController;
+
         // Get reference to the game scene
         this.gameScene = this.scene.get('GameScene');
 
@@ -82,6 +86,20 @@ export default class UIScene extends Phaser.Scene {
     }
 
     /**
+     * Reset score display
+     * Added method for GameScene to call
+     */
+    resetScoreDisplay() {
+        this.score = 0;
+        if (this.scoreText) {
+            this.scoreText.setText('Score: 0');
+        }
+        if (this.messageText) {
+            this.messageText.setText('');
+        }
+    }
+
+    /**
      * Show a message to the player
      * @param {string} text - Message text
      * @param {string} color - Text color (hex)
@@ -133,9 +151,10 @@ export default class UIScene extends Phaser.Scene {
             this.restartFromVictory();
         });
 
-        // Disable the HTML input during victory
-        const answerInput = document.getElementById('answer-input');
-        if (answerInput) answerInput.disabled = true;
+        // Disable the HTML input during victory using the UI controller
+        if (this.uiController) {
+            this.uiController.disableInput(true);
+        }
     }
 
     /**
@@ -163,6 +182,18 @@ export default class UIScene extends Phaser.Scene {
             const messageY = height - GameConfig.layout.ui.messageText.yOffsetFromBottom;
             this.messageText.setPosition(messageX, messageY);
         }
+
+        // Update victory elements position if they exist
+        if (this.victoryElements) {
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            // Update positions of victory screen elements
+            if (this.victoryElements[0]) this.victoryElements[0].setPosition(centerX, centerY); // bg
+            if (this.victoryElements[1]) this.victoryElements[1].setPosition(centerX, centerY); // text
+            if (this.victoryElements[2]) this.victoryElements[2].setPosition(centerX, centerY + 70); // button
+            if (this.victoryElements[3]) this.victoryElements[3].setPosition(centerX, centerY + 120); // enterText
+        }
     }
 
     /**
@@ -180,11 +211,10 @@ export default class UIScene extends Phaser.Scene {
         this.victoryElements.forEach(element => element.destroy());
         this.victoryElements = null;
 
-        // Re-enable the HTML input after restart
-        const answerInput = document.getElementById('answer-input');
-        if (answerInput) {
-            answerInput.disabled = false;
-            answerInput.focus();
+        // Re-enable the HTML input after restart using the UI controller
+        if (this.uiController) {
+            this.uiController.disableInput(false);
+            this.uiController.focusInput();
         }
     }
 
@@ -194,5 +224,14 @@ export default class UIScene extends Phaser.Scene {
      */
     getScore() {
         return this.score;
+    }
+
+    /**
+     * Clean up event listeners when scene is shut down
+     */
+    shutdown() {
+        this.scale.off('resize', this.resize, this);
+        this.game.events.off('resize', this.resize, this);
+        this.input.keyboard.off('keydown-ENTER');
     }
 }
