@@ -417,22 +417,62 @@ export default class GameScene extends Phaser.Scene {
 
         for (let i = 0; i < this.mathBlocks.length; i++) {
             const block = this.mathBlocks[i];
-            if (block && block.sprite && block.sprite.active && block.checkAnswer(answer)) {
+            if (block && block.sprite && block.sprite.active && !block.isSolved && block.checkAnswer(answer)) {
                 targetBlock = block;
                 break;
             }
         }
 
         if (targetBlock) {
-            // Calculate points based on the problem's answer
-            const points = targetBlock.problem.answer * 10;
+            // Calculate points based on the problem's answer and the block's score multiplier
+            const points = targetBlock.problem ?
+                (targetBlock.problem.answer * 10) * targetBlock.scoreMultiplier :
+                10 * targetBlock.scoreMultiplier;
+
+            // Get column information before marking the block as solved
+            const col = targetBlock.getColumn();
+
+            // --- Mark as solved, provide feedback, DON'T destroy ---
+            targetBlock.isSolved = true;
+            if (targetBlock.sprite) {
+                targetBlock.sprite.setTint(0xaaaaaa); // Visual feedback: grey out
+            }
+            // --- End of Step 2b changes ---
 
             // Use the block's ball release strategy
             targetBlock.releaseBalls();
 
+            // Update score
+            if (this.uiScene) {
+                this.uiScene.updateScore(points);
+            }
+
+            // Show feedback message
+            this.showMessage(`Correct! +${points}`, '#27ae60');
+
+            // Assign next problem down immediately after solving
+            this.assignMathProblemToColumn(col);
+
             return { correct: true, points: points };
         } else {
+            // No matching unsolved block found, or answer was wrong
+            if (this.uiScene) {
+                this.uiScene.updateScore(-5);
+            }
+
+            this.showMessage('Try again!', '#e74c3c');
             return { correct: false, points: 0 };
+        }
+    }
+
+    /**
+     * Show a message to the player
+     * @param {string} text - Message text
+     * @param {string} color - Text color (hex)
+     */
+    showMessage(text, color) {
+        if (this.uiScene && this.uiScene.showMessage) {
+            this.uiScene.showMessage(text, color);
         }
     }
 
