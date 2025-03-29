@@ -155,26 +155,28 @@ export default class MathBlock extends Block {
         // Apply any special effects
         this.applySpecialEffect(ball);
 
-        // Clean up text when block is destroyed
-        if (this.text) {
-            this.text.destroy();
-        }
-
-        super.destroy();
-
-        // Return score based on difficulty and multiplier
-        return this.problem ?
+        // Calculate points based on the problem BEFORE destroying it
+        const points = this.problem ?
             (this.problem.answer * 10) * this.scoreMultiplier :
             10 * this.scoreMultiplier;
+
+        // Call destroy (which now handles text and sprite)
+        this.destroy();
+
+        // Return score based on difficulty and multiplier
+        return points;
     }
 
     /**
      * Destroy this block
      */
     destroy() {
+        // 1. Destroy the text object specific to MathBlock
         if (this.text) {
             this.text.destroy();
+            this.text = null; // Nullify reference
         }
-        super.destroy();
+        // 2. Call the parent (Block) destroy method to handle the sprite
+        super.destroy(); // This now nullifies this.sprite as well
     }
 }
