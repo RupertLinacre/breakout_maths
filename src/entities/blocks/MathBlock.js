@@ -58,6 +58,9 @@ export default class MathBlock extends Block {
         this.specialEffect = config.specialEffect;
         this.scoreMultiplier = config.scoreMultiplier;
 
+        // Add isSolved state
+        this.isSolved = false;
+
         // Set math problem based on difficulty
         this.setMathProblem(config.difficulty);
     }
