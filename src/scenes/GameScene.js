@@ -48,7 +48,6 @@ export default class GameScene extends Phaser.Scene {
         this.gameInProgress = true;
         this.blockGrid = [];
         this.mathBlocks = [];
-        this.uiController = null; // Add property
     }
 
     /**
@@ -143,9 +142,6 @@ export default class GameScene extends Phaser.Scene {
      * Create game objects
      */
     create() {
-        // Get reference to the UI Controller passed via config
-        this.uiController = this.sys.game.config.uiController;
-
         // Reset difficulty to initial values at the start of a new game
         this.resetDifficulty();
 
@@ -551,11 +547,6 @@ export default class GameScene extends Phaser.Scene {
         // Tell UI Scene to show victory screen
         const uiScene = this.scene.get('UIScene'); // Get sibling scene
         uiScene.showVictory();
-
-        // Tell UI Controller to disable the external input
-        if (this.uiController) {
-            this.uiController.disableInput(true);
-        }
     }
 
     /**

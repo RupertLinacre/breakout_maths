@@ -12,16 +12,18 @@ export default class UIScene extends Phaser.Scene {
         super({ key: 'UIScene', active: true });
         this.score = 0;
         this.victoryElements = null;
-        this.uiController = null; // Add property
+        // Add properties for the in-game input
+        this.currentAnswerString = '';
+        this.answerTextDisplay = null; // Will hold the Phaser Text object
+        this.answerInputBackground = null; // Will hold the background Rectangle
+        this.inputActive = true; // Flag to control if input is accepted
+        this.maxLength = 6; // Max characters for input
     }
 
     /**
      * Create UI elements
      */
     create() {
-        // Get reference to the UI Controller
-        this.uiController = this.sys.game.config.uiController;
-
         // Get reference to the game scene
         this.gameScene = this.scene.get('GameScene');
 
