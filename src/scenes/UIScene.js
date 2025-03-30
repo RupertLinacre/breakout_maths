@@ -215,6 +215,28 @@ export default class UIScene extends Phaser.Scene {
     }
 
     /**
+     * Restart the game from the victory screen
+     */
+    restartFromVictory() {
+        // Clear victory elements
+        if (this.victoryElements) {
+            this.victoryElements.forEach(element => element.destroy());
+            this.victoryElements = null;
+        }
+
+        // Reset score and UI elements
+        this.resetScoreDisplay();
+
+        // Call the GameScene's restartGame method to reset the game state
+        const gameScene = this.scene.get('GameScene');
+        if (gameScene && typeof gameScene.restartGame === 'function') {
+            gameScene.restartGame();
+        } else {
+            console.error('GameScene or its restartGame method is not available.');
+        }
+    }
+
+    /**
      * Handle resize events
      * @param {number} width - New width
      * @param {number} height - New height
