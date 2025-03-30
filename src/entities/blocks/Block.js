@@ -41,9 +41,16 @@ export default class Block {
      * Destroy this block
      */
     destroy() {
-        if (this.sprite && this.sprite.active) {
+        // Guard clause: Only proceed if sprite exists
+        if (!this.sprite) {
+            return;
+        }
+        // Destroy the sprite if it's active
+        if (this.sprite.active) {
             this.sprite.destroy();
         }
+        // Nullify the reference to help GC and prevent future errors
+        this.sprite = null;
     }
 
     /**

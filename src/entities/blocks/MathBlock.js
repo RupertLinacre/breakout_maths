@@ -58,6 +58,9 @@ export default class MathBlock extends Block {
         this.specialEffect = config.specialEffect;
         this.scoreMultiplier = config.scoreMultiplier;
 
+        // Add isSolved state
+        this.isSolved = false;
+
         // Set math problem based on difficulty
         this.setMathProblem(config.difficulty);
     }
@@ -155,26 +158,28 @@ export default class MathBlock extends Block {
         // Apply any special effects
         this.applySpecialEffect(ball);
 
-        // Clean up text when block is destroyed
-        if (this.text) {
-            this.text.destroy();
-        }
-
-        super.destroy();
-
-        // Return score based on difficulty and multiplier
-        return this.problem ?
+        // Calculate points based on the problem
+        const points = this.problem ?
             (this.problem.answer * 10) * this.scoreMultiplier :
             10 * this.scoreMultiplier;
+
+        // No longer destroying the block here
+        // Destruction is now handled in GameScene.handleBallBlockCollision
+
+        // Return score based on difficulty and multiplier
+        return points;
     }
 
     /**
      * Destroy this block
      */
     destroy() {
+        // 1. Destroy the text object specific to MathBlock
         if (this.text) {
             this.text.destroy();
+            this.text = null; // Nullify reference
         }
-        super.destroy();
+        // 2. Call the parent (Block) destroy method to handle the sprite
+        super.destroy(); // This now nullifies this.sprite as well
     }
 }
