@@ -220,14 +220,14 @@ export default class UIScene extends Phaser.Scene {
      * @param {number} height - New height
      */
     resize(gameSize, baseSize, displaySize, previousSize) { // Get all potential args to inspect
-        // --- MODIFIED RESIZE ---
-        console.log(`--- RESIZE EVENT --- Args:`, gameSize, baseSize, displaySize, previousSize); // Log all args
 
-        // --- ALWAYS use this.scale for dimensions ---
+
+
+
         const effectiveWidth = this.scale.width;
         const effectiveHeight = this.scale.height;
-        console.log(`Resize using this.scale: Width: ${effectiveWidth}, Height: ${effectiveHeight}`); // Confirm values from scale manager
-        // --- END ALWAYS use this.scale ---
+
+
 
         // Check if dimensions are valid numbers before calculating positions
         if (isNaN(effectiveWidth) || isNaN(effectiveHeight) || effectiveWidth <= 0 || effectiveHeight <= 0) {
