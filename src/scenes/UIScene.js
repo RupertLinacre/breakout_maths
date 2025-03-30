@@ -27,48 +27,57 @@ export default class UIScene extends Phaser.Scene {
         // Get reference to the game scene
         this.gameScene = this.scene.get('GameScene');
 
-        // Get game dimensions from config or scale manager
-        const gameWidth = this.scale.width; // Use scale manager for dynamic size
-        const gameHeight = this.scale.height;
+        // --- CHANGE: Use GameConfig for initial dimensions ---
+        const gameWidth = GameConfig.layout.gameWidth;
+        const gameHeight = GameConfig.layout.gameHeight;
+        // --- END CHANGE ---
 
         // --- Score Text (Existing) ---
-        const scoreX = 20; // Keep using config or hardcode
-        const scoreY = gameHeight - 70; // Keep using config or hardcode
+        const scoreX = 20;
+        const scoreY = gameHeight - 70; // Position relative to calculated height
         this.scoreText = this.add.text(scoreX, scoreY, 'Score: 0', { fontSize: '24px' });
 
         // --- Message Text (Existing) ---
         const messageX = gameWidth / 2;
-        const messageY = gameHeight - 40;
+        const messageY = gameHeight - 40; // Position relative to calculated height
         this.messageText = this.add.text(messageX, messageY, '', { fontSize: '24px' }).setOrigin(0.5);
 
         // --- NEW: Answer Input Field ---
         const inputWidth = 220;
         const inputHeight = 40;
         const inputX = gameWidth / 2;
-        const inputY = gameHeight - 90; // Position above score/message
+        const inputY = gameHeight - 90;
 
         // Background Rectangle
+
         this.answerInputBackground = this.add.rectangle(
             inputX,
             inputY,
             inputWidth,
             inputHeight,
-            0xffffff // White background
-        ).setStrokeStyle(2, 0x3498db); // Blue border
+            0x111111 // Dark grey background (adjust as needed)
+        ).setStrokeStyle(2, 0xffffff); // Changed border color to white
 
-        // Text Object to display the input string
+        // Text Object
         this.answerTextDisplay = this.add.text(
             inputX,
             inputY,
             '_', // Initial placeholder
             {
                 fontSize: '24px',
-                color: '#000000', // Black text
+                color: '#ffffff', // Changed text color to white
                 align: 'center',
                 fixedWidth: inputWidth - 20, // Padding inside background
                 fixedHeight: inputHeight - 10
             }
         ).setOrigin(0.5); // Center the text
+
+        // Logging (optional now, but good for verification)
+        console.log("UIScene Create - Game Height:", gameHeight, "Calculated Input Y:", inputY);
+        console.log("Input Background:", this.answerInputBackground);
+        console.log("Input Text:", this.answerTextDisplay);
+        console.log("Actual BG Position:", this.answerInputBackground.x, this.answerInputBackground.y); // <-- Add this
+        console.log("Actual Text Position:", this.answerTextDisplay.x, this.answerTextDisplay.y); // <-- Add this
 
         // Add Keyboard Listener
         this.input.keyboard.on('keydown', this.handleKeyInput, this);
@@ -77,7 +86,6 @@ export default class UIScene extends Phaser.Scene {
 
         // Listen for resize events (existing)
         this.scale.on('resize', this.resize, this);
-        this.game.events.on('resize', this.resize, this);
 
         // Setup input handling for Enter key (for victory screen restart - existing)
         this.input.keyboard.on('keydown-ENTER', () => {
@@ -140,10 +148,10 @@ export default class UIScene extends Phaser.Scene {
             this.answerTextDisplay.setText('_');
             this.answerTextDisplay.setVisible(true); // Ensure visible after restart
         }
-         if (this.answerInputBackground) {
-             this.answerInputBackground.setVisible(true); // Ensure visible
-         }
-         this.inputActive = true; // Ensure input is active
+        if (this.answerInputBackground) {
+            this.answerInputBackground.setVisible(true); // Ensure visible
+        }
+        this.inputActive = true; // Ensure input is active
     }
 
     /**
@@ -211,95 +219,66 @@ export default class UIScene extends Phaser.Scene {
      * @param {number} width - New width
      * @param {number} height - New height
      */
-    resize(width, height) {
-        // If width and height are not provided, use the current game size (existing)
-        if (!width || !height) {
-            width = this.scale.width;
-            height = this.scale.height;
+    resize(gameSize, baseSize, displaySize, previousSize) { // Get all potential args to inspect
+        // --- MODIFIED RESIZE ---
+        console.log(`--- RESIZE EVENT --- Args:`, gameSize, baseSize, displaySize, previousSize); // Log all args
+
+        // --- ALWAYS use this.scale for dimensions ---
+        const effectiveWidth = this.scale.width;
+        const effectiveHeight = this.scale.height;
+        console.log(`Resize using this.scale: Width: ${effectiveWidth}, Height: ${effectiveHeight}`); // Confirm values from scale manager
+        // --- END ALWAYS use this.scale ---
+
+        // Check if dimensions are valid numbers before calculating positions
+        if (isNaN(effectiveWidth) || isNaN(effectiveHeight) || effectiveWidth <= 0 || effectiveHeight <= 0) {
+            console.error("Resize - Invalid dimensions from this.scale:", effectiveWidth, effectiveHeight);
+            return; // Prevent setting NaN positions
         }
 
-        // Update score text position (existing)
+        // --- Update positions using effectiveWidth/Height from this.scale ---
+        // Update score text position
         if (this.scoreText) {
-            const scoreY = height - 70;
+            const scoreY = effectiveHeight - 70;
             this.scoreText.setPosition(20, scoreY);
         }
 
-        // Update message text position (existing)
+        // Update message text position
         if (this.messageText) {
-            const messageX = width / 2;
-            const messageY = height - 40;
+            const messageX = effectiveWidth / 2;
+            const messageY = effectiveHeight - 40;
             this.messageText.setPosition(messageX, messageY);
         }
 
-        // --- NEW: Update Answer Input Position ---
-         const inputX = width / 2;
-         const inputY = height - 90;
-         if (this.answerInputBackground) {
-             this.answerInputBackground.setPosition(inputX, inputY);
-         }
-         if (this.answerTextDisplay) {
-             this.answerTextDisplay.setPosition(inputX, inputY);
-         }
-        // --- End Answer Input Position Update ---
-
-        // Update victory elements position (existing)
-        if (this.victoryElements) {
-            const centerX = width / 2;
-            const centerY = height / 2;
-             // Update positions of victory screen elements (adjust y if needed)
-             if (this.victoryElements[0]) this.victoryElements[0].setPosition(centerX, centerY); // bg
-             if (this.victoryElements[1]) this.victoryElements[1].setPosition(centerX, centerY - 20); // text
-             if (this.victoryElements[2]) this.victoryElements[2].setPosition(centerX, centerY + 50); // button
-             if (this.victoryElements[3]) this.victoryElements[3].setPosition(centerX, centerY + 90); // enterText
+        // Update Answer Input Position
+        const inputX = effectiveWidth / 2;
+        const inputY = effectiveHeight - 90;
+        if (this.answerInputBackground) {
+            this.answerInputBackground.setPosition(inputX, inputY);
+            console.log("Resize - Setting BG Pos:", inputX, inputY);
         }
-    }
-
-    /**
-     * Restart the game from victory screen
-     */
-    restartFromVictory() {
-        if (!this.victoryElements) return;
-
-        this.scene.get('GameScene').restartGame();
-        this.resetScoreDisplay(); // Use existing method
-
-        // Clean up victory screen (existing)
-        this.victoryElements.forEach(element => element.destroy());
-        this.victoryElements = null;
-
-        // --- Re-enable and Reset Input ---
-        this.inputActive = true;
-        this.currentAnswerString = '';
         if (this.answerTextDisplay) {
-             this.answerTextDisplay.setText('_'); // Reset to placeholder
-             this.answerTextDisplay.setVisible(true); // Show input field
+            this.answerTextDisplay.setPosition(inputX, inputY);
+            console.log("Resize - Setting Text Pos:", inputX, inputY);
         }
-         if (this.answerInputBackground) {
-            this.answerInputBackground.setVisible(true);
+
+        // Update victory elements position
+        if (this.victoryElements) {
+            const centerX = effectiveWidth / 2;
+            const centerY = effectiveHeight / 2;
+            if (this.victoryElements[0]) this.victoryElements[0].setPosition(centerX, centerY);
+            if (this.victoryElements[1]) this.victoryElements[1].setPosition(centerX, centerY - 20);
+            if (this.victoryElements[2]) this.victoryElements[2].setPosition(centerX, centerY + 50);
+            if (this.victoryElements[3]) this.victoryElements[3].setPosition(centerX, centerY + 90);
         }
-        // The keyboard listener is always attached, just controlled by inputActive flag
-        // --- End Re-enable ---
+        console.log(`--- RESIZE EVENT END ---`);
+        // --- END MODIFIED RESIZE ---
     }
 
-    /**
-     * Get the current score
-     * @returns {number} Current score
-     */
-    getScore() {
-        return this.score;
-    }
-
-    /**
-     * Clean up event listeners when scene is shut down
-     */
     shutdown() {
-        // Remove specific listener
         this.input.keyboard.off('keydown', this.handleKeyInput, this);
-        // Remove victory enter listener
         this.input.keyboard.off('keydown-ENTER');
-        // Remove resize listeners (already should be in original code if needed)
-        this.scale.off('resize', this.resize, this);
-        this.game.events.off('resize', this.resize, this);
+        this.scale.off('resize', this.resize, this); // Ensure this matches the listener added in create
+        // this.game.events.off('resize', this.resize, this); // REMOVE if listener was removed in create
 
         console.log("UI Scene Shutdown: Listeners removed.");
     }

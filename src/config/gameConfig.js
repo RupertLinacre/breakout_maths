@@ -22,8 +22,8 @@ const GameConfig = {
 
     // Block grid configuration parameters
     blockGrid: {
-        columns: 16,
-        rows: 7,
+        columns: 2,
+        rows: 2,
         blockWidth: 70,
         blockHeight: 30,
         spacing: 74,

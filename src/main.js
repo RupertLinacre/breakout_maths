@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import GameScene from './scenes/GameScene.js';
 import GameConfig from './config/gameConfig.js';
+import UIScene from './scenes/UIScene.js';
 
 const config = {
     type: Phaser.AUTO,
@@ -14,7 +15,7 @@ const config = {
             debug: false
         }
     },
-    scene: [GameScene]
+    scene: [GameScene, UIScene] // Add UIScene back here
 };
 
 // Create the game instance locally
