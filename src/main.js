@@ -39,6 +39,8 @@ setTimeout(() => {
     // Set up num columns input logic
     const numColumnsInput = document.getElementById('numColumnsInput');
     if (numColumnsInput) {
+        // Set the initial value from GameConfig (programmatically)
+        numColumnsInput.value = GameConfig.blockGrid.columns;
         // Focus/blur disables/enables Phaser keyboard input
         numColumnsInput.addEventListener('focus', () => {
             if (game.input && game.input.keyboard) game.input.keyboard.enabled = false;
@@ -49,7 +51,7 @@ setTimeout(() => {
         // On change, update columns and restart game
         numColumnsInput.addEventListener('change', (e) => {
             const val = parseInt(e.target.value, 10);
-            if (val >= 4 && val <= 30) {
+            if (val >= 2 && val <= 1000) {
                 const gameScene = game.scene.getScene('GameScene');
                 if (gameScene && typeof gameScene.setNumColumnsAndRestart === 'function') {
                     gameScene.setNumColumnsAndRestart(val);
