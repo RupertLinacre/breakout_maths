@@ -733,4 +733,26 @@ export default class GameScene extends Phaser.Scene {
 
         return false;
     }
+
+    /**
+     * Set the number of columns and restart the game, resizing the canvas as needed
+     * @param {number} newColCount
+     */
+    setNumColumnsAndRestart(newColCount) {
+        // Update config
+        GameConfig.blockGrid.columns = newColCount;
+        // Recompute layout
+        GameConfig.updateLayout();
+        // Reset score in UI scene if available
+        const uiScene = this.scene.get('UIScene');
+        if (uiScene && typeof uiScene.resetScoreDisplay === 'function') {
+            uiScene.resetScoreDisplay();
+        }
+        // Resize the game canvas to match new layout
+        const newWidth = GameConfig.layout.gameWidth;
+        const newHeight = GameConfig.layout.gameHeight;
+        this.scale.resize(newWidth, newHeight);
+        // Restart this scene (full reset)
+        this.scene.restart();
+    }
 }
