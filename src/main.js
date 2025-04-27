@@ -122,4 +122,25 @@ setTimeout(() => {
             }
         });
     }
+
+    // Set up difficulty selector logic
+    const difficultySelector = document.getElementById('difficulty-selector');
+    if (difficultySelector) {
+        // Set initial value from localStorage or GameConfig
+        const savedDifficulty = localStorage.getItem('mathGameDifficulty');
+        const initialDifficulty = savedDifficulty || GameConfig.getDifficulty();
+        difficultySelector.value = initialDifficulty;
+
+        // On change, update localStorage, GameConfig, and restart game
+        difficultySelector.addEventListener('change', (e) => {
+            const selectedDifficulty = e.target.value;
+            localStorage.setItem('mathGameDifficulty', selectedDifficulty);
+            GameConfig.setDifficulty(selectedDifficulty);
+            const gameScene = game.scene.getScene('GameScene');
+            if (gameScene && typeof gameScene.setGameDifficulty === 'function') {
+                gameScene.setGameDifficulty(selectedDifficulty);
+                gameScene.restartGame();
+            }
+        });
+    }
 }, 100);
