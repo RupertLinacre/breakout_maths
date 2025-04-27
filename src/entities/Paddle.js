@@ -12,20 +12,10 @@ export default class Paddle {
      */
     constructor(scene, x, y) {
         this.scene = scene;
-        this.sprite = scene.physics.add.image(x, y, 'paddle').setImmovable(true);
-        this.speed = GameConfig.layout.paddle.speed;
-
-        // Get the game width from the config
-        const gameWidth = GameConfig.layout.gameWidth;
-
-        // Calculate paddle bounds based on actual sprite width
-        const paddleHalfWidth = this.sprite.width / 2;
-
-        // Set minimum X to be the paddle's half-width from the left edge
-        this.minX = paddleHalfWidth;
-
-        // Set maximum X to be the paddle's half-width from the right edge
-        this.maxX = gameWidth - paddleHalfWidth;
+        this.sprite = scene.physics.add.image(x, y, 'paddle')
+            .setCollideWorldBounds(true); // let Phaser keep it inside
+        this.speed = GameConfig.layout.paddle.speed * 50;
+        // Removed minX/maxX and manual bounds logic
     }
 
     /**
@@ -33,28 +23,10 @@ export default class Paddle {
      * @param {Phaser.Input.Keyboard.CursorKeys} cursors - Cursor keys for input
      */
     update(cursors) {
-        if (cursors.left.isDown) {
-            this.moveLeft();
-        } else if (cursors.right.isDown) {
-            this.moveRight();
-        }
-
-        // Keep paddle in bounds
-        this.sprite.x = Phaser.Math.Clamp(this.sprite.x, this.minX, this.maxX);
-    }
-
-    /**
-     * Move paddle left
-     */
-    moveLeft() {
-        this.sprite.x -= this.speed;
-    }
-
-    /**
-     * Move paddle right
-     */
-    moveRight() {
-        this.sprite.x += this.speed;
+        // apply velocity so world-bounds block works for us
+        if (cursors.left.isDown) this.sprite.setVelocityX(-this.speed);
+        else if (cursors.right.isDown) this.sprite.setVelocityX(this.speed);
+        else this.sprite.setVelocityX(0);
     }
 
     /**
