@@ -14,7 +14,8 @@ export default class Ball {
     constructor(scene, x, y) {
         this.scene = scene;
         this.sprite = scene.balls.create(x, y, 'ball');
-        this.sprite.setCollideWorldBounds(false); // We handle bounds manually mostly
+        this.sprite.setCollideWorldBounds(true);
+        this.sprite.body.onWorldBounds = true;
         this.sprite.setBounce(1);
         this.speed = GameConfig.layout.ball.speed;
 
@@ -54,42 +55,6 @@ export default class Ball {
         } else {
             console.warn("Invalid arguments for Ball.shoot:", targetXorDirection, targetY);
             this.sprite.setVelocity(0, -this.speed); // Default upwards
-        }
-    }
-
-    /**
-     * Update ball position and handle boundary collisions
-     * Called BY GameScene's update loop FOR each ball instance.
-     * @param {number} width - Game width
-     * @param {number} height - Game height
-     */
-    update(width, height) {
-        // Guard clause
-        if (!this.sprite || !this.sprite.active || !this.sprite.body) {
-            return;
-        }
-
-        // Handle manual wall collisions (top, left, right only)
-        let bounced = false;
-        if (this.sprite.x <= 0 && this.sprite.body.velocity.x < 0) {
-            this.sprite.x = 1;
-            this.sprite.body.velocity.x *= -1;
-            bounced = true;
-        } else if (this.sprite.x >= width - this.sprite.width && this.sprite.body.velocity.x > 0) {
-            this.sprite.x = width - this.sprite.width - 1;
-            this.sprite.body.velocity.x *= -1;
-            bounced = true;
-        }
-
-        if (this.sprite.y <= 0 && this.sprite.body.velocity.y < 0) {
-            this.sprite.y = 1;
-            this.sprite.body.velocity.y *= -1;
-            bounced = true;
-        }
-
-        // Destroy ball if it falls off bottom
-        if (this.sprite.y > height) {
-            this.destroy(); // Call Ball's own destroy method
         }
     }
 

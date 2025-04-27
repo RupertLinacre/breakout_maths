@@ -149,6 +149,13 @@ export default class GameScene extends Phaser.Scene {
         this.blocks = this.physics.add.staticGroup();
         this.balls = this.physics.add.group();
 
+        // destroy any ball that leaves the bottom of the world
+        this.physics.world.on('worldbounds', (body, up, down) => {
+            if (down && body.gameObject) {
+                body.gameObject.destroy();
+            }
+        });
+
         // Create paddle - center it horizontally based on game width
         const gameWidth = GameConfig.layout.gameWidth;
         this.paddle = new Paddle(this, gameWidth / 2, GameConfig.layout.paddle.initialY);
@@ -297,25 +304,6 @@ export default class GameScene extends Phaser.Scene {
 
         // Update paddle position based on input
         this.paddle.update(this.cursors);
-
-        // Update all active balls - CORRECTED BALL UPDATE LOOP
-        const gameWidth = GameConfig.layout.gameWidth;
-        const gameHeight = GameConfig.layout.gameHeight;
-        const activeBallSprites = this.balls.getChildren(); // Get array copy
-
-        for (const ballSprite of activeBallSprites) {
-            if (!ballSprite || !ballSprite.active) continue; // Skip inactive sprites
-
-            const ballInstance = ballSprite.getData('ballInstance');
-            if (ballInstance) {
-                // Call the Ball instance's own update method
-                ballInstance.update(gameWidth, gameHeight);
-            } else {
-                // Handle potential orphaned sprites (log & destroy)
-                console.warn("Orphaned ball sprite found in update loop, destroying:", ballSprite);
-                ballSprite.destroy();
-            }
-        }
 
         // Check for paddle-ball collisions
         this.physics.overlap(this.paddle.sprite, this.balls, (paddleSprite, ballSprite) => {
