@@ -46,7 +46,8 @@ export default class UIScene extends Phaser.Scene {
         const inputWidth = 220;
         const inputHeight = 40;
         const inputX = gameWidth / 2;
-        const inputY = gameHeight - 90;
+        // Place input box just below the paddle
+        const inputY = GameConfig.layout.paddle.initialY + GameConfig.layout.paddle.height / 2 + 30;
 
         // Background Rectangle
 
@@ -273,7 +274,8 @@ export default class UIScene extends Phaser.Scene {
 
         // Update Answer Input Position
         const inputX = effectiveWidth / 2;
-        const inputY = effectiveHeight - 90;
+        // Place input box just below the paddle
+        const inputY = GameConfig.layout.paddle.initialY + GameConfig.layout.paddle.height / 2 + 30;
         if (this.answerInputBackground) {
             this.answerInputBackground.setPosition(inputX, inputY);
             console.log("Resize - Setting BG Pos:", inputX, inputY);

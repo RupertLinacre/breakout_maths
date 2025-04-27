@@ -22,15 +22,15 @@ const GameConfig = {
 
     // Block grid configuration parameters
     blockGrid: {
-        columns: 2,
-        rows: 2,
+        columns: 20,
+        rows: 6,
         blockWidth: 70,
         blockHeight: 30,
         spacing: 74,
         rowSpacing: 40,
         sidePadding: 50,  // Explicit padding on left and right sides
         topPadding: 50,   // Padding from top of game to first row of blocks
-        bottomPadding: 150 // Padding from bottom row of blocks to bottom of game (for paddle and UI)
+        bottomPadding: 220 // Increased padding for more space below paddle and for input box
     },
 
     // Layout will be computed by updateLayout()
