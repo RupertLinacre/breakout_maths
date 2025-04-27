@@ -48,7 +48,6 @@ export default class GameScene extends Phaser.Scene {
         this.gameInProgress = true;
         this.blockGrid = [];
         this.mathBlocks = [];
-        this.uiController = null; // Add property
     }
 
     /**
@@ -143,15 +142,19 @@ export default class GameScene extends Phaser.Scene {
      * Create game objects
      */
     create() {
-        // Get reference to the UI Controller passed via config
-        this.uiController = this.sys.game.config.uiController;
-
         // Reset difficulty to initial values at the start of a new game
         this.resetDifficulty();
 
         // Setup game groups
         this.blocks = this.physics.add.staticGroup();
         this.balls = this.physics.add.group();
+
+        // destroy any ball that leaves the bottom of the world
+        this.physics.world.on('worldbounds', (body, up, down) => {
+            if (down && body.gameObject) {
+                body.gameObject.destroy();
+            }
+        });
 
         // Create paddle - center it horizontally based on game width
         const gameWidth = GameConfig.layout.gameWidth;
@@ -301,25 +304,6 @@ export default class GameScene extends Phaser.Scene {
 
         // Update paddle position based on input
         this.paddle.update(this.cursors);
-
-        // Update all active balls - CORRECTED BALL UPDATE LOOP
-        const gameWidth = GameConfig.layout.gameWidth;
-        const gameHeight = GameConfig.layout.gameHeight;
-        const activeBallSprites = this.balls.getChildren(); // Get array copy
-
-        for (const ballSprite of activeBallSprites) {
-            if (!ballSprite || !ballSprite.active) continue; // Skip inactive sprites
-
-            const ballInstance = ballSprite.getData('ballInstance');
-            if (ballInstance) {
-                // Call the Ball instance's own update method
-                ballInstance.update(gameWidth, gameHeight);
-            } else {
-                // Handle potential orphaned sprites (log & destroy)
-                console.warn("Orphaned ball sprite found in update loop, destroying:", ballSprite);
-                ballSprite.destroy();
-            }
-        }
 
         // Check for paddle-ball collisions
         this.physics.overlap(this.paddle.sprite, this.balls, (paddleSprite, ballSprite) => {
@@ -551,11 +535,6 @@ export default class GameScene extends Phaser.Scene {
         // Tell UI Scene to show victory screen
         const uiScene = this.scene.get('UIScene'); // Get sibling scene
         uiScene.showVictory();
-
-        // Tell UI Controller to disable the external input
-        if (this.uiController) {
-            this.uiController.disableInput(true);
-        }
     }
 
     /**
@@ -741,5 +720,78 @@ export default class GameScene extends Phaser.Scene {
         }
 
         return false;
+    }
+
+    /**
+     * Set the number of columns and restart the game, resizing the canvas as needed
+     * @param {number} newColCount
+     */
+    setNumColumnsAndRestart(newColCount) {
+        // Update config
+        GameConfig.blockGrid.columns = newColCount;
+        // Recompute layout
+        GameConfig.updateLayout();
+        // Reset score in UI scene if available
+        const uiScene = this.scene.get('UIScene');
+        if (uiScene && typeof uiScene.resetScoreDisplay === 'function') {
+            uiScene.resetScoreDisplay();
+        }
+        // Resize the game canvas to match new layout
+        const newWidth = GameConfig.layout.gameWidth;
+        const newHeight = GameConfig.layout.gameHeight;
+        this.scale.resize(newWidth, newHeight);
+        // Restart this scene (full reset)
+        this.scene.restart();
+    }
+
+    /**
+     * Set the number of rows and restart the game, resizing the canvas as needed
+     * @param {number} newRowCount
+     */
+    setNumRowsAndRestart(newRowCount) {
+        GameConfig.blockGrid.rows = newRowCount;
+        GameConfig.updateLayout();
+        const uiScene = this.scene.get('UIScene');
+        if (uiScene && typeof uiScene.resetScoreDisplay === 'function') {
+            uiScene.resetScoreDisplay();
+        }
+        const newWidth = GameConfig.layout.gameWidth;
+        const newHeight = GameConfig.layout.gameHeight;
+        this.scale.resize(newWidth, newHeight);
+        this.scene.restart();
+    }
+
+    /**
+     * Set the top padding and restart the game, resizing the canvas as needed
+     * @param {number} newTopPadding
+     */
+    setTopPaddingAndRestart(newTopPadding) {
+        GameConfig.blockGrid.topPadding = newTopPadding;
+        GameConfig.updateLayout();
+        const uiScene = this.scene.get('UIScene');
+        if (uiScene && typeof uiScene.resetScoreDisplay === 'function') {
+            uiScene.resetScoreDisplay();
+        }
+        const newWidth = GameConfig.layout.gameWidth;
+        const newHeight = GameConfig.layout.gameHeight;
+        this.scale.resize(newWidth, newHeight);
+        this.scene.restart();
+    }
+
+    /**
+     * Set the side padding and restart the game, resizing the canvas as needed
+     * @param {number} newSidePadding
+     */
+    setSidePaddingAndRestart(newSidePadding) {
+        GameConfig.blockGrid.sidePadding = newSidePadding;
+        GameConfig.updateLayout();
+        const uiScene = this.scene.get('UIScene');
+        if (uiScene && typeof uiScene.resetScoreDisplay === 'function') {
+            uiScene.resetScoreDisplay();
+        }
+        const newWidth = GameConfig.layout.gameWidth;
+        const newHeight = GameConfig.layout.gameHeight;
+        this.scale.resize(newWidth, newHeight);
+        this.scene.restart();
     }
 }

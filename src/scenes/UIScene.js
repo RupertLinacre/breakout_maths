@@ -12,43 +12,85 @@ export default class UIScene extends Phaser.Scene {
         super({ key: 'UIScene', active: true });
         this.score = 0;
         this.victoryElements = null;
-        this.uiController = null; // Add property
+        // Add properties for the in-game input
+        this.currentAnswerString = '';
+        this.answerTextDisplay = null; // Will hold the Phaser Text object
+        this.answerInputBackground = null; // Will hold the background Rectangle
+        this.inputActive = true; // Flag to control if input is accepted
+        this.maxLength = 6; // Max characters for input
     }
 
     /**
      * Create UI elements
      */
     create() {
-        // Get reference to the UI Controller
-        this.uiController = this.sys.game.config.uiController;
-
         // Get reference to the game scene
         this.gameScene = this.scene.get('GameScene');
 
-        // Get game dimensions from config
+        // --- CHANGE: Use GameConfig for initial dimensions ---
         const gameWidth = GameConfig.layout.gameWidth;
         const gameHeight = GameConfig.layout.gameHeight;
+        // --- END CHANGE ---
 
-        // Position score text using config values
-        const scoreX = GameConfig.layout.ui.scoreText.x;
-        const scoreY = gameHeight - GameConfig.layout.ui.scoreText.yOffsetFromBottom;
+        // --- Score Text (Existing) ---
+        const scoreX = 20;
+        const scoreY = gameHeight - 70; // Position relative to calculated height
         this.scoreText = this.add.text(scoreX, scoreY, 'Score: 0', { fontSize: '24px' });
 
-        // Position message text using config values
-        const messageX = gameWidth * GameConfig.layout.ui.messageText.xFactor;
-        const messageY = gameHeight - GameConfig.layout.ui.messageText.yOffsetFromBottom;
+        // --- Message Text (Existing) ---
+        const messageX = gameWidth / 2;
+        const messageY = gameHeight - 40; // Position relative to calculated height
         this.messageText = this.add.text(messageX, messageY, '', { fontSize: '24px' }).setOrigin(0.5);
 
-        // Add a console log to verify scene loading
-        console.log("UI Scene Loaded");
+        // --- NEW: Answer Input Field ---
+        const inputWidth = 220;
+        const inputHeight = 40;
+        const inputX = gameWidth / 2;
+        // Place input box just below the paddle
+        const inputY = GameConfig.layout.paddle.initialY + GameConfig.layout.paddle.height / 2 + 30;
 
-        // Listen for resize events
+        // Background Rectangle
+
+        this.answerInputBackground = this.add.rectangle(
+            inputX,
+            inputY,
+            inputWidth,
+            inputHeight,
+            0x111111 // Dark grey background (adjust as needed)
+        ).setStrokeStyle(2, 0xffffff); // Changed border color to white
+
+        // Text Object
+        this.answerTextDisplay = this.add.text(
+            inputX,
+            inputY,
+            '_', // Initial placeholder
+            {
+                fontSize: '24px',
+                color: '#ffffff', // Changed text color to white
+                align: 'center',
+                fixedWidth: inputWidth - 20, // Padding inside background
+                fixedHeight: inputHeight - 10
+            }
+        ).setOrigin(0.5); // Center the text
+
+        // Logging (optional now, but good for verification)
+        console.log("UIScene Create - Game Height:", gameHeight, "Calculated Input Y:", inputY);
+        console.log("Input Background:", this.answerInputBackground);
+        console.log("Input Text:", this.answerTextDisplay);
+        console.log("Actual BG Position:", this.answerInputBackground.x, this.answerInputBackground.y); // <-- Add this
+        console.log("Actual Text Position:", this.answerTextDisplay.x, this.answerTextDisplay.y); // <-- Add this
+
+        // Add Keyboard Listener
+        this.input.keyboard.on('keydown', this.handleKeyInput, this);
+
+        console.log("UI Scene Loaded with In-Game Input");
+
+        // Listen for resize events (existing)
         this.scale.on('resize', this.resize, this);
-        this.game.events.on('resize', this.resize, this);
 
-        // Setup input handling for Enter key (for victory screen)
+        // Setup input handling for Enter key (for victory screen restart - existing)
         this.input.keyboard.on('keydown-ENTER', () => {
-            if (this.victoryElements) {
+            if (this.victoryElements && !this.inputActive) { // Only restart if victory shown
                 this.restartFromVictory();
             }
         }, this);
@@ -58,19 +100,23 @@ export default class UIScene extends Phaser.Scene {
      * Submit the answer
      * @param {string} answer - The answer from the HTML input
      */
-    submitAnswer(answer) {
-        const parsedAnswer = parseFloat(answer);
-        if (isNaN(parsedAnswer)) return;
+    submitAnswer(parsedAnswer) { // Receives the parsed number directly
+        // Basic validation (already parsed, just check type)
+        if (typeof parsedAnswer !== 'number' || isNaN(parsedAnswer)) {
+            console.warn("Invalid answer submitted to UIScene:", parsedAnswer);
+            return;
+        }
 
-        // Tell the game scene to check the answer
+        // Call game scene to check
         const result = this.gameScene.checkAnswer(parsedAnswer);
 
-        if (result.correct) {
-            // Update score
-            this.updateScore(result.points);
+        // Keep the existing logic for handling correct/incorrect results
+        if (result && result.correct) { // Check result exists
+            // Original logic: update score, show success message
+            this.updateScore(result.points); // Use points from result
             this.showMessage(`Correct! +${result.points}`, '#27ae60');
         } else {
-            // Penalty for wrong answer
+            // Original logic: update score (penalty), show try again message
             this.updateScore(-5);
             this.showMessage('Try again!', '#e74c3c');
         }
@@ -97,6 +143,16 @@ export default class UIScene extends Phaser.Scene {
         if (this.messageText) {
             this.messageText.setText('');
         }
+        // Reset input field as well
+        this.currentAnswerString = '';
+        if (this.answerTextDisplay) {
+            this.answerTextDisplay.setText('_');
+            this.answerTextDisplay.setVisible(true); // Ensure visible after restart
+        }
+        if (this.answerInputBackground) {
+            this.answerInputBackground.setVisible(true); // Ensure visible
+        }
+        this.inputActive = true; // Ensure input is active
     }
 
     /**
@@ -117,43 +173,67 @@ export default class UIScene extends Phaser.Scene {
      * Show victory screen
      */
     showVictory() {
-        // Get game dimensions
-        const gameWidth = this.game.config.width;
-        const gameHeight = this.game.config.height;
+        this.inputActive = false; // Disable input capture
+        this.currentAnswerString = ''; // Clear any pending input
+        if (this.answerTextDisplay) {
+            this.answerTextDisplay.setText(''); // Clear visual display
+            this.answerTextDisplay.setVisible(false); // Hide input field
+        }
+        if (this.answerInputBackground) {
+            this.answerInputBackground.setVisible(false);
+        }
 
-        // Center position
+        // --- Existing Victory Screen Logic ---
+        const gameWidth = this.scale.width;
+        const gameHeight = this.scale.height;
         const centerX = gameWidth / 2;
         const centerY = gameHeight / 2;
 
         const bg = this.add.rectangle(centerX, centerY, 400, 200, 0x000000, 0.7);
-        const text = this.add.text(centerX, centerY,
+        // Adjust text y-position slightly if needed due to input field removal space
+        const text = this.add.text(centerX, centerY - 20,
             `Victory!\nYour score: ${this.score}`,
             { fontSize: '32px', color: '#fff', align: 'center' }
         ).setOrigin(0.5);
-
-        const button = this.add.text(centerX, centerY + 70, 'Play Again', {
+        const button = this.add.text(centerX, centerY + 50, 'Play Again', {
             fontSize: '24px',
             backgroundColor: '#3498db',
             padding: { x: 20, y: 10 },
             color: '#fff'
         }).setOrigin(0.5).setInteractive();
-
-        // Add instruction text for Enter key
-        const enterText = this.add.text(centerX, centerY + 120, 'Press ENTER to restart', {
+        const enterText = this.add.text(centerX, centerY + 90, 'Press ENTER to restart', {
             fontSize: '16px',
             color: '#fff'
         }).setOrigin(0.5);
 
-        // Store victory screen elements for cleanup
         this.victoryElements = [bg, text, button, enterText];
 
         button.on('pointerdown', () => {
             this.restartFromVictory();
         });
+        // Note: The global Enter listener handles restart via keyboard
+        // --- End Existing Logic ---
+    }
 
-        // Disable the HTML input during victory using the UI controller
-        if (this.uiController) {
-            this.uiController.disableInput(true);
+    /**
+     * Restart the game from the victory screen
+     */
+    restartFromVictory() {
+        // Clear victory elements
+        if (this.victoryElements) {
+            this.victoryElements.forEach(element => element.destroy());
+            this.victoryElements = null;
+        }
+
+        // Reset score and UI elements
+        this.resetScoreDisplay();
+
+        // Call the GameScene's restartGame method to reset the game state
+        const gameScene = this.scene.get('GameScene');
+        if (gameScene && typeof gameScene.restartGame === 'function') {
+            gameScene.restartGame();
+        } else {
+            console.error('GameScene or its restartGame method is not available.');
         }
     }
 
@@ -162,76 +242,120 @@ export default class UIScene extends Phaser.Scene {
      * @param {number} width - New width
      * @param {number} height - New height
      */
-    resize(width, height) {
-        // If width and height are not provided, use the current game size
-        if (!width || !height) {
-            width = this.game.config.width;
-            height = this.game.config.height;
+    resize(gameSize, baseSize, displaySize, previousSize) { // Get all potential args to inspect
+
+
+
+
+        const effectiveWidth = this.scale.width;
+        const effectiveHeight = this.scale.height;
+
+
+
+        // Check if dimensions are valid numbers before calculating positions
+        if (isNaN(effectiveWidth) || isNaN(effectiveHeight) || effectiveWidth <= 0 || effectiveHeight <= 0) {
+            console.error("Resize - Invalid dimensions from this.scale:", effectiveWidth, effectiveHeight);
+            return; // Prevent setting NaN positions
         }
 
+        // --- Update positions using effectiveWidth/Height from this.scale ---
         // Update score text position
         if (this.scoreText) {
-            const scoreX = GameConfig.layout.ui.scoreText.x;
-            const scoreY = height - GameConfig.layout.ui.scoreText.yOffsetFromBottom;
-            this.scoreText.setPosition(scoreX, scoreY);
+            const scoreY = effectiveHeight - 70;
+            this.scoreText.setPosition(20, scoreY);
         }
 
         // Update message text position
         if (this.messageText) {
-            const messageX = width * GameConfig.layout.ui.messageText.xFactor;
-            const messageY = height - GameConfig.layout.ui.messageText.yOffsetFromBottom;
+            const messageX = effectiveWidth / 2;
+            const messageY = effectiveHeight - 40;
             this.messageText.setPosition(messageX, messageY);
         }
 
-        // Update victory elements position if they exist
+        // Update Answer Input Position
+        const inputX = effectiveWidth / 2;
+        // Place input box just below the paddle
+        const inputY = GameConfig.layout.paddle.initialY + GameConfig.layout.paddle.height / 2 + 30;
+        if (this.answerInputBackground) {
+            this.answerInputBackground.setPosition(inputX, inputY);
+            console.log("Resize - Setting BG Pos:", inputX, inputY);
+        }
+        if (this.answerTextDisplay) {
+            this.answerTextDisplay.setPosition(inputX, inputY);
+            console.log("Resize - Setting Text Pos:", inputX, inputY);
+        }
+
+        // Update victory elements position
         if (this.victoryElements) {
-            const centerX = width / 2;
-            const centerY = height / 2;
-
-            // Update positions of victory screen elements
-            if (this.victoryElements[0]) this.victoryElements[0].setPosition(centerX, centerY); // bg
-            if (this.victoryElements[1]) this.victoryElements[1].setPosition(centerX, centerY); // text
-            if (this.victoryElements[2]) this.victoryElements[2].setPosition(centerX, centerY + 70); // button
-            if (this.victoryElements[3]) this.victoryElements[3].setPosition(centerX, centerY + 120); // enterText
+            const centerX = effectiveWidth / 2;
+            const centerY = effectiveHeight / 2;
+            if (this.victoryElements[0]) this.victoryElements[0].setPosition(centerX, centerY);
+            if (this.victoryElements[1]) this.victoryElements[1].setPosition(centerX, centerY - 20);
+            if (this.victoryElements[2]) this.victoryElements[2].setPosition(centerX, centerY + 50);
+            if (this.victoryElements[3]) this.victoryElements[3].setPosition(centerX, centerY + 90);
         }
+        console.log(`--- RESIZE EVENT END ---`);
+        // --- END MODIFIED RESIZE ---
     }
 
-    /**
-     * Restart the game from victory screen
-     */
-    restartFromVictory() {
-        // Only proceed if victory elements exist
-        if (!this.victoryElements) return;
-
-        this.scene.get('GameScene').restartGame();
-        this.score = 0;
-        this.scoreText.setText('Score: 0');
-
-        // Clean up victory screen
-        this.victoryElements.forEach(element => element.destroy());
-        this.victoryElements = null;
-
-        // Re-enable the HTML input after restart using the UI controller
-        if (this.uiController) {
-            this.uiController.disableInput(false);
-            this.uiController.focusInput();
-        }
-    }
-
-    /**
-     * Get the current score
-     * @returns {number} Current score
-     */
-    getScore() {
-        return this.score;
-    }
-
-    /**
-     * Clean up event listeners when scene is shut down
-     */
     shutdown() {
-        this.scale.off('resize', this.resize, this);
-        this.game.events.off('resize', this.resize, this);
+        this.input.keyboard.off('keydown', this.handleKeyInput, this);
         this.input.keyboard.off('keydown-ENTER');
+        this.scale.off('resize', this.resize, this); // Ensure this matches the listener added in create
+        // this.game.events.off('resize', this.resize, this); // REMOVE if listener was removed in create
+
+        console.log("UI Scene Shutdown: Listeners removed.");
+    }
+
+    /**
+     * Handle keyboard input for the answer input field
+     * @param {Phaser.Input.Keyboard.KeyboardEvent} event
+     */
+    handleKeyInput(event) {
+        // Ignore input if victory screen is up or input explicitly disabled
+        if (!this.inputActive) {
+            return;
+        }
+
+        const key = event.key;
+
+        if (key >= '0' && key <= '9') {
+            // Handle Digits
+            if (this.currentAnswerString.length < this.maxLength) {
+                this.currentAnswerString += key;
+            }
+        } else if (key === '.') {
+            // Handle Decimal Point
+            if (this.currentAnswerString.length < this.maxLength &&
+                this.currentAnswerString.length > 0 && // Cannot start with '.'
+                !this.currentAnswerString.includes('.')) { // Only one '.' allowed
+                this.currentAnswerString += '.';
+            }
+        } else if (key === 'Backspace') {
+            // Handle Backspace
+            if (this.currentAnswerString.length > 0) {
+                this.currentAnswerString = this.currentAnswerString.slice(0, -1);
+            }
+            event.preventDefault(); // Prevent browser back navigation
+        } else if (key === 'Enter') {
+            // Handle Enter (Submit)
+            if (this.currentAnswerString.length > 0) {
+                const parsedAnswer = parseFloat(this.currentAnswerString);
+                if (!isNaN(parsedAnswer)) {
+                    this.submitAnswer(parsedAnswer);
+                    this.currentAnswerString = ''; // Clear input after submit
+                } else {
+                    // Optional: Show message for invalid number format?
+                    this.showMessage('Invalid number', '#e74c3c');
+                    this.currentAnswerString = ''; // Clear invalid input
+                }
+            }
+            event.preventDefault(); // Prevent potential form submission if wrapped
+        }
+
+        // Update the display text
+        if (this.answerTextDisplay) {
+            this.answerTextDisplay.setText(this.currentAnswerString || '_'); // Show '_' if empty
+        }
     }
 }
