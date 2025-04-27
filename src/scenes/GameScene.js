@@ -755,4 +755,55 @@ export default class GameScene extends Phaser.Scene {
         // Restart this scene (full reset)
         this.scene.restart();
     }
+
+    /**
+     * Set the number of rows and restart the game, resizing the canvas as needed
+     * @param {number} newRowCount
+     */
+    setNumRowsAndRestart(newRowCount) {
+        GameConfig.blockGrid.rows = newRowCount;
+        GameConfig.updateLayout();
+        const uiScene = this.scene.get('UIScene');
+        if (uiScene && typeof uiScene.resetScoreDisplay === 'function') {
+            uiScene.resetScoreDisplay();
+        }
+        const newWidth = GameConfig.layout.gameWidth;
+        const newHeight = GameConfig.layout.gameHeight;
+        this.scale.resize(newWidth, newHeight);
+        this.scene.restart();
+    }
+
+    /**
+     * Set the top padding and restart the game, resizing the canvas as needed
+     * @param {number} newTopPadding
+     */
+    setTopPaddingAndRestart(newTopPadding) {
+        GameConfig.blockGrid.topPadding = newTopPadding;
+        GameConfig.updateLayout();
+        const uiScene = this.scene.get('UIScene');
+        if (uiScene && typeof uiScene.resetScoreDisplay === 'function') {
+            uiScene.resetScoreDisplay();
+        }
+        const newWidth = GameConfig.layout.gameWidth;
+        const newHeight = GameConfig.layout.gameHeight;
+        this.scale.resize(newWidth, newHeight);
+        this.scene.restart();
+    }
+
+    /**
+     * Set the side padding and restart the game, resizing the canvas as needed
+     * @param {number} newSidePadding
+     */
+    setSidePaddingAndRestart(newSidePadding) {
+        GameConfig.blockGrid.sidePadding = newSidePadding;
+        GameConfig.updateLayout();
+        const uiScene = this.scene.get('UIScene');
+        if (uiScene && typeof uiScene.resetScoreDisplay === 'function') {
+            uiScene.resetScoreDisplay();
+        }
+        const newWidth = GameConfig.layout.gameWidth;
+        const newHeight = GameConfig.layout.gameHeight;
+        this.scale.resize(newWidth, newHeight);
+        this.scene.restart();
+    }
 }

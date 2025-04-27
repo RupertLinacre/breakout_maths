@@ -59,4 +59,67 @@ setTimeout(() => {
             }
         });
     }
+
+    // Set up num rows input logic
+    const numRowsInput = document.getElementById('numRowsInput');
+    if (numRowsInput) {
+        numRowsInput.value = GameConfig.blockGrid.rows;
+        numRowsInput.addEventListener('focus', () => {
+            if (game.input && game.input.keyboard) game.input.keyboard.enabled = false;
+        });
+        numRowsInput.addEventListener('blur', () => {
+            if (game.input && game.input.keyboard) game.input.keyboard.enabled = true;
+        });
+        numRowsInput.addEventListener('change', (e) => {
+            const val = parseInt(e.target.value, 10);
+            if (val >= 1 && val <= 20) {
+                const gameScene = game.scene.getScene('GameScene');
+                if (gameScene && typeof gameScene.setNumRowsAndRestart === 'function') {
+                    gameScene.setNumRowsAndRestart(val);
+                }
+            }
+        });
+    }
+
+    // Set up top padding input logic
+    const topPaddingInput = document.getElementById('topPaddingInput');
+    if (topPaddingInput) {
+        topPaddingInput.value = GameConfig.blockGrid.topPadding;
+        topPaddingInput.addEventListener('focus', () => {
+            if (game.input && game.input.keyboard) game.input.keyboard.enabled = false;
+        });
+        topPaddingInput.addEventListener('blur', () => {
+            if (game.input && game.input.keyboard) game.input.keyboard.enabled = true;
+        });
+        topPaddingInput.addEventListener('change', (e) => {
+            const val = parseInt(e.target.value, 10);
+            if (val >= 0 && val <= 500) {
+                const gameScene = game.scene.getScene('GameScene');
+                if (gameScene && typeof gameScene.setTopPaddingAndRestart === 'function') {
+                    gameScene.setTopPaddingAndRestart(val);
+                }
+            }
+        });
+    }
+
+    // Set up side padding input logic
+    const sidePaddingInput = document.getElementById('sidePaddingInput');
+    if (sidePaddingInput) {
+        sidePaddingInput.value = GameConfig.blockGrid.sidePadding;
+        sidePaddingInput.addEventListener('focus', () => {
+            if (game.input && game.input.keyboard) game.input.keyboard.enabled = false;
+        });
+        sidePaddingInput.addEventListener('blur', () => {
+            if (game.input && game.input.keyboard) game.input.keyboard.enabled = true;
+        });
+        sidePaddingInput.addEventListener('change', (e) => {
+            const val = parseInt(e.target.value, 10);
+            if (val >= 0 && val <= 500) {
+                const gameScene = game.scene.getScene('GameScene');
+                if (gameScene && typeof gameScene.setSidePaddingAndRestart === 'function') {
+                    gameScene.setSidePaddingAndRestart(val);
+                }
+            }
+        });
+    }
 }, 100);
