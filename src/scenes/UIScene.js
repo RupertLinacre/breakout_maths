@@ -18,6 +18,7 @@ export default class UIScene extends Phaser.Scene {
         this.answerInputBackground = null; // Will hold the background Rectangle
         this.inputActive = true; // Flag to control if input is accepted
         this.maxLength = 6; // Max characters for input
+        this.lastSubmittedAnswer = null; // Store last successfully submitted answer
     }
 
     /**
@@ -153,6 +154,7 @@ export default class UIScene extends Phaser.Scene {
             this.answerInputBackground.setVisible(true); // Ensure visible
         }
         this.inputActive = true; // Ensure input is active
+        this.lastSubmittedAnswer = null; // <-- Reset last answer on restart
     }
 
     /**
@@ -337,11 +339,19 @@ export default class UIScene extends Phaser.Scene {
                 this.currentAnswerString = this.currentAnswerString.slice(0, -1);
             }
             event.preventDefault(); // Prevent browser back navigation
+        } else if (key === 'r' || key === 'R') { // <-- ADD THIS NEW BLOCK
+            if (this.inputActive && this.lastSubmittedAnswer !== null) {
+                // Optional feedback:
+                // this.showMessage(`Resubmitting: ${this.lastSubmittedAnswer}`, '#3498db');
+                this.submitAnswer(this.lastSubmittedAnswer);
+            }
+            event.preventDefault();
         } else if (key === 'Enter') {
             // Handle Enter (Submit)
             if (this.currentAnswerString.length > 0) {
                 const parsedAnswer = parseFloat(this.currentAnswerString);
                 if (!isNaN(parsedAnswer)) {
+                    this.lastSubmittedAnswer = parsedAnswer; // Store before submitting/clearing
                     this.submitAnswer(parsedAnswer);
                     this.currentAnswerString = ''; // Clear input after submit
                 } else {
