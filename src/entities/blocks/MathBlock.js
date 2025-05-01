@@ -12,7 +12,7 @@ export default class MathBlock extends Block {
      * Create a new math block
      * @param {Phaser.Scene} scene - The scene this block belongs to
      * @param {number} x - X position
-     * @param {number} y - Y position
+     * @param {number} y - Y Position
      * @param {object|string} options - Options object or difficulty string
      */
     constructor(scene, x, y, options = {}) {
@@ -128,7 +128,17 @@ export default class MathBlock extends Block {
     releaseBalls() {
         const paddleX = this.scene.paddle.getX();
         const paddleY = this.scene.paddle.getY();
-        return this.ballReleaseStrategy.execute(this.scene, paddleX, paddleY, this.x, this.y);
+        const ballSpecs = this.ballReleaseStrategy.execute(this.scene, paddleX, paddleY, this.x, this.y);
+        const createdBalls = [];
+        if (Array.isArray(ballSpecs)) {
+            ballSpecs.forEach(spec => {
+                if (spec && spec.direction) {
+                    const ball = this.scene.shootBall(paddleX, paddleY - 10, spec.direction, undefined, spec.speed);
+                    createdBalls.push(ball);
+                }
+            });
+        }
+        return createdBalls;
     }
 
     /**

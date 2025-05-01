@@ -31,9 +31,12 @@ export default class Ball {
      * Shoot the ball in a specific direction
      * @param {number|object} targetXorDirection - Either target X coordinate or direction vector {x, y}
      * @param {number} [targetY] - Target Y coordinate (if first param is X)
+     * @param {number} [speedOverride] - Optional speed to use instead of the default.
      */
-    shoot(targetXorDirection, targetY) {
+    shoot(targetXorDirection, targetY, speedOverride) {
         if (!this.sprite || !this.sprite.body) return; // Guard clause
+
+        const effectiveSpeed = (typeof speedOverride === 'number' && speedOverride > 0) ? speedOverride : this.speed;
 
         if (typeof targetXorDirection === 'number' && typeof targetY === 'number') {
             // Shoot toward specific coordinates
@@ -43,18 +46,18 @@ export default class Ball {
                 targetXorDirection,
                 targetY
             );
-            this.scene.physics.velocityFromRotation(angle, this.speed, this.sprite.body.velocity);
+            this.scene.physics.velocityFromRotation(angle, effectiveSpeed, this.sprite.body.velocity);
         } else if (typeof targetXorDirection === 'object' && targetXorDirection !== null) {
             // Use provided direction vector
             const direction = targetXorDirection;
             const norm = Math.sqrt(direction.x * direction.x + direction.y * direction.y) || 1;
             this.sprite.setVelocity(
-                (direction.x / norm) * this.speed,
-                (direction.y / norm) * this.speed
+                (direction.x / norm) * effectiveSpeed,
+                (direction.y / norm) * effectiveSpeed
             );
         } else {
             console.warn("Invalid arguments for Ball.shoot:", targetXorDirection, targetY);
-            this.sprite.setVelocity(0, -this.speed); // Default upwards
+            this.sprite.setVelocity(0, -effectiveSpeed); // Default upwards
         }
     }
 

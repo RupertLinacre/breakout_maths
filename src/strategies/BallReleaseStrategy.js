@@ -11,7 +11,7 @@ export class BallReleaseStrategy {
      * @param {number} paddleY - Paddle Y position
      * @param {number} targetX - Target X position
      * @param {number} targetY - Target Y position
-     * @returns {Array} Array of created balls
+     * @returns {Array<object>} Array of ball specifications (e.g., [{ direction: {x, y} }])
      */
     execute(scene, paddleX, paddleY, targetX, targetY) {
         console.warn('BallReleaseStrategy.execute() called on base class - should be overridden');
@@ -31,11 +31,16 @@ export class StandardBallReleaseStrategy extends BallReleaseStrategy {
      * @param {number} paddleY - Paddle Y position
      * @param {number} targetX - Target X position
      * @param {number} targetY - Target Y position
-     * @returns {Array} Array of created balls
+     * @returns {Array<object>} Array containing one ball specification.
      */
     execute(scene, paddleX, paddleY, targetX, targetY) {
-        // Release a single ball toward the target
-        return [scene.shootBall(paddleX, paddleY - 10, targetX, targetY)];
+        // Calculate direction vector toward the target
+        const angle = Phaser.Math.Angle.Between(paddleX, paddleY - 10, targetX, targetY);
+        const direction = {
+            x: Math.cos(angle),
+            y: Math.sin(angle)
+        };
+        return [{ direction }];
     }
 }
 
@@ -51,7 +56,7 @@ export class MultiBallReleaseStrategy extends BallReleaseStrategy {
      * @param {number} paddleY - Paddle Y position
      * @param {number} targetX - Target X position
      * @param {number} targetY - Target Y position
-     * @returns {Array} Array of created balls
+     * @returns {Array<object>} Array of ball specifications
      */
     execute(scene, paddleX, paddleY, targetX, targetY) {
         // Calculate angle to target
@@ -61,25 +66,27 @@ export class MultiBallReleaseStrategy extends BallReleaseStrategy {
             targetX,
             targetY
         );
-
-        // Calculate the x component of direction to target
-        const xDirection = Math.cos(angle);
-
-        // Create mirrored angle (reflect horizontally around the vertical axis)
-        // If original angle has x component of 0.5, mirrored angle has x component of -0.5
-        const mirroredDirection = {
-            x: -xDirection,
-            y: Math.sin(angle) // Keep y component the same
+        // Direction to target
+        const direction = {
+            x: Math.cos(angle),
+            y: Math.sin(angle)
         };
-
-        // Return 3 balls:
-        // 1. First ball aimed directly at target
-        // 2. Second ball mirrored horizontally from the first
-        // 3. Third ball aimed straight up
+        // Mirrored horizontally
+        const mirroredDirection = {
+            x: -direction.x,
+            y: direction.y
+        };
+        // Straight up
+        const upDirection = { x: 0, y: -1 };
+        // Use GameConfig for base speed
+        const baseSpeed = (scene && scene.game && scene.game.config && scene.game.config.layout && scene.game.config.layout.ball && scene.game.config.layout.ball.speed) || 300;
+        // Fallback to 300 if not available
+        // But we can also import GameConfig directly if needed
+        // For now, use 300 for demonstration
         return [
-            scene.shootBall(paddleX, paddleY - 10, targetX, targetY),
-            scene.shootBall(paddleX, paddleY - 10, mirroredDirection),
-            scene.shootBall(paddleX, paddleY - 10, { x: 0, y: -1 })
+            { direction, speed: 360 }, // Center ball faster
+            { direction: mirroredDirection, speed: 240 }, // Mirrored ball slower
+            { direction: upDirection } // Default speed
         ];
     }
 }
@@ -104,17 +111,13 @@ export class ArcBallReleaseStrategy extends BallReleaseStrategy {
      * @param {number} paddleY - Paddle Y position
      * @param {number} targetX - Target X position
      * @param {number} targetY - Target Y position
-     * @returns {Array} Array of created balls
+     * @returns {Array<object>} Array of ball specifications
      */
     execute(scene, paddleX, paddleY, targetX, targetY) {
-        const balls = [];
-
-        // Calculate the angle increment based on the number of balls
-        // We want to cover approximately 160 degrees (from 10° to 170°)
+        const specs = [];
+        // Cover approximately 160 degrees (from 10° to 170°)
         const angleRange = 160;
         const angleIncrement = angleRange / (this.ballCount - 1);
-
-        // Create balls from 10° to 170° with calculated increments
         for (let i = 0; i < this.ballCount; i++) {
             const angle = 10 + (i * angleIncrement);
             const radians = Phaser.Math.DegToRad(angle + 180);
@@ -122,10 +125,13 @@ export class ArcBallReleaseStrategy extends BallReleaseStrategy {
                 x: Math.cos(radians),
                 y: Math.sin(radians)
             };
-            balls.push(scene.shootBall(paddleX, paddleY - 10, direction));
+            // Example: make outer balls slower, center balls faster
+            let speed;
+            if (i === 0 || i === this.ballCount - 1) speed = 220;
+            else if (i === Math.floor(this.ballCount / 2)) speed = 350;
+            specs.push(speed ? { direction, speed } : { direction });
         }
-
-        return balls;
+        return specs;
     }
 }
 
@@ -156,29 +162,24 @@ export class SprayBallReleaseStrategy extends BallReleaseStrategy {
      */
     execute(scene, paddleX, paddleY, targetX, targetY) {
         const balls = [];
-
         // Calculate the angle increment based on the number of balls
         // We want to cover approximately 160 degrees (from 10° to 170°)
         const angleRange = 160;
         const angleIncrement = angleRange / (this.ballCount - 1);
-
-        // Create a timer event for each ball
         for (let i = 0; i < this.ballCount; i++) {
-            // Calculate the angle for this ball
             const angle = 10 + (i * angleIncrement);
             const radians = Phaser.Math.DegToRad(angle + 180);
             const direction = {
                 x: Math.cos(radians),
                 y: Math.sin(radians)
             };
-
-            // Create a timer event to release this ball after a delay
+            // Example: alternate speeds for visual effect
+            const speed = (i % 2 === 0) ? 300 : 180;
             scene.time.delayedCall(i * this.delayMs, () => {
-                const ball = scene.shootBall(paddleX, paddleY - 10, direction);
+                const ball = scene.shootBall(paddleX, paddleY - 10, direction, undefined, speed);
                 balls.push(ball);
             });
         }
-
         return balls;
     }
 }

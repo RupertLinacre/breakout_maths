@@ -515,11 +515,12 @@ export default class GameScene extends Phaser.Scene {
      * @param {number} y - Starting Y position
      * @param {number|object} targetXorDirection - Either target X coordinate or direction vector {x, y}
      * @param {number} [targetY] - Target Y coordinate (if first param is X)
+     * @param {number} [speed] - Optional speed for this specific ball.
      * @returns {Ball} The created ball
      */
-    shootBall(x, y, targetXorDirection, targetY) {
+    shootBall(x, y, targetXorDirection, targetY, speed) {
         const ball = new Ball(this, x, y);
-        ball.shoot(targetXorDirection, targetY);
+        ball.shoot(targetXorDirection, targetY, speed);
         return ball;
     }
 
