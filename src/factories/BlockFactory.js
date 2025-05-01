@@ -1,5 +1,5 @@
 import MathBlock from '../entities/blocks/MathBlock.js';
-import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, ArcBallReleaseStrategy, SprayBallReleaseStrategy } from '../strategies/BallReleaseStrategy.js';
+import { StandardBallReleaseStrategy, MultiBallReleaseStrategy, ArcBallReleaseStrategy, SprayBallReleaseStrategy, PlayerAimBallReleaseStrategy } from '../strategies/BallReleaseStrategy.js';
 import GameConfig from '../config/gameConfig.js';
 
 /**
@@ -10,7 +10,7 @@ export default class BlockFactory {
      * Create a math block with specific properties
      * @param {Phaser.Scene} scene - The scene this block belongs to
      * @param {number} x - X position
-     * @param {number} y - Y position
+     * @param {number} y - Y Position
      * @param {string} difficulty - Math difficulty ('reception', 'year1', 'year2', etc.)
      * @returns {MathBlock} The created block
      */
@@ -31,9 +31,9 @@ export default class BlockFactory {
             options.texture = 'blockEasy';
             options.ballReleaseStrategy = new StandardBallReleaseStrategy();
         } else if (positionIndex === 1) {
-            // Medium level (25% spawn rate) - orange blocks with 3 balls
-            options.texture = 'blockMedium';
-            options.ballReleaseStrategy = new MultiBallReleaseStrategy();
+            // Medium level (25% spawn rate) - orange blocks, use player-aimed single ball
+            options.texture = 'blockMedium'; // keep orange texture
+            options.ballReleaseStrategy = new PlayerAimBallReleaseStrategy(); // Use the new aiming strategy
         } else if (positionIndex === 2) {
             // Hard level (15% spawn rate) - red blocks with arc balls
             options.texture = 'blockHard';

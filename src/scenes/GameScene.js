@@ -51,7 +51,7 @@ export default class GameScene extends Phaser.Scene {
         this.maxLaunchAngle = -1; // Max angle (degrees)
         this.angleAdjustSpeed = 1; // Degrees per frame adjustment
         this.barrelGraphics = null; // Will hold the graphics object
-        this.barrelLength = 30; // Length of the indicator line
+        this.barrelLength = 75; // Length of the indicator line
         // ------------------------------------------------
 
         this.gameInProgress = true;
@@ -336,7 +336,8 @@ export default class GameScene extends Phaser.Scene {
             const angleRad = Phaser.Math.DegToRad(this.launchAngle); // Convert angle to radians
             const endX = paddleX + this.barrelLength * Math.cos(angleRad);
             const endY = paddleY + this.barrelLength * Math.sin(angleRad);
-            this.barrelGraphics.lineStyle(2, 0xffffff);
+            // Use the orange color from GameConfig for the barrel
+            this.barrelGraphics.lineStyle(2, GameConfig.layout.blockColors.year1);
             this.barrelGraphics.lineBetween(paddleX, paddleY, endX, endY);
         }
         // ---------------------------------

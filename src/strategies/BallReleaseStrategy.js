@@ -183,3 +183,33 @@ export class SprayBallReleaseStrategy extends BallReleaseStrategy {
         return balls;
     }
 }
+
+/**
+ * Strategy for releasing a single ball using the player's aim angle.
+ * @extends BallReleaseStrategy
+ */
+export class PlayerAimBallReleaseStrategy extends BallReleaseStrategy {
+    /**
+     * Execute the player-aimed ball release strategy (single ball using scene.launchAngle).
+     * @param {Phaser.Scene} scene - The game scene (expected to have a launchAngle property).
+     * @param {number} paddleX - Paddle X position.
+     * @param {number} paddleY - Paddle Y position.
+     * @param {number} targetX - Target X position (Ignored by this strategy).
+     * @param {number} targetY - Target Y position (Ignored by this strategy).
+     * @returns {Array<object>} Array containing one ball specification using the scene's launchAngle.
+     */
+    execute(scene, paddleX, paddleY, targetX, targetY) {
+        // If the scene has the required launchAngle property
+        if (typeof scene.launchAngle !== 'number') {
+            console.warn('PlayerAimBallReleaseStrategy requires scene to have launchAngle property. Defaulting to up.');
+            return [{ direction: { x: 0, y: -1 } }]; // straight up
+        }
+        // Use player-controlled launch angle from the scene
+        const angleRad = Phaser.Math.DegToRad(scene.launchAngle); // Angle from scene and convert to radians
+        const direction = {
+            x: Math.cos(angleRad),
+            y: Math.sin(angleRad)
+        };
+        return [{ direction: direction }]; // spec with calculated direction
+    }
+}
