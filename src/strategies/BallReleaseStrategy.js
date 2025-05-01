@@ -190,6 +190,11 @@ export class SprayBallReleaseStrategy extends BallReleaseStrategy {
  */
 export class PlayerAimBallReleaseStrategy extends BallReleaseStrategy {
     /**
+     * Phase for the sine wave controlling speed (static so it persists across instances)
+     */
+    static _speedPhase = 0;
+
+    /**
      * Execute the player-aimed ball release strategy (single ball using scene.launchAngle).
      * @param {Phaser.Scene} scene - The game scene (expected to have a launchAngle property).
      * @param {number} paddleX - Paddle X position.
@@ -202,7 +207,7 @@ export class PlayerAimBallReleaseStrategy extends BallReleaseStrategy {
         // If the scene has the required launchAngle property
         if (typeof scene.launchAngle !== 'number') {
             console.warn('PlayerAimBallReleaseStrategy requires scene to have launchAngle property. Defaulting to up.');
-            return [{ direction: { x: 0, y: -1 } }]; // straight up
+            return [{ direction: { x: 0, y: -1 }, speed: 300 }]; // straight up, default speed
         }
         // Use player-controlled launch angle from the scene
         const angleRad = Phaser.Math.DegToRad(scene.launchAngle); // Angle from scene and convert to radians
@@ -210,6 +215,11 @@ export class PlayerAimBallReleaseStrategy extends BallReleaseStrategy {
             x: Math.cos(angleRad),
             y: Math.sin(angleRad)
         };
-        return [{ direction: direction }]; // spec with calculated direction
+        // Calculate speed using a sine wave, oscillating between 200 and 400, starting at 300
+        const phase = PlayerAimBallReleaseStrategy._speedPhase;
+        const speed = 600 + 400 * Math.sin(phase);
+        // Increment phase for next release
+        PlayerAimBallReleaseStrategy._speedPhase += Math.PI / 6; // Adjust step for smoothness
+        return [{ direction: direction, speed }]; // spec with calculated direction and speed
     }
 }
