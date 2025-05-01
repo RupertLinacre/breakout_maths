@@ -45,6 +45,15 @@ export default class GameScene extends Phaser.Scene {
         // This avoids redundancy and ensures values are only defined once
         this.resetDifficulty();
 
+        // --- Launch Angle and Barrel State ---
+        this.launchAngle = -90; // Initial angle (straight up in degrees)
+        this.minLaunchAngle = -179; // Min angle (degrees)
+        this.maxLaunchAngle = -1; // Max angle (degrees)
+        this.angleAdjustSpeed = 1; // Degrees per frame adjustment
+        this.barrelGraphics = null; // Will hold the graphics object
+        this.barrelLength = 30; // Length of the indicator line
+        // ------------------------------------------------
+
         this.gameInProgress = true;
         this.blockGrid = [];
         this.mathBlocks = [];
@@ -160,11 +169,15 @@ export default class GameScene extends Phaser.Scene {
         const gameWidth = GameConfig.layout.gameWidth;
         this.paddle = new Paddle(this, gameWidth / 2, GameConfig.layout.paddle.initialY);
 
+        // --- Add Barrel Graphics ---
+        this.barrelGraphics = this.add.graphics({ lineStyle: { width: 2, color: 0xffffff } });
+        // ---------------------------
+
         // Create blocks grid
         this.createBlockGrid();
 
         // Input handling
-        this.cursors = this.input.keyboard.createCursorKeys();
+        this.cursors = this.input.keyboard.createCursorKeys(); // Ensure cursors include UP/DOWN
 
         // Setup collisions
         this.physics.add.collider(this.balls, this.blocks, this.handleBallBlockCollision, null, this);
@@ -299,11 +312,34 @@ export default class GameScene extends Phaser.Scene {
     /**
      * Update game state
      */
-    update() {
+    update(time, delta) {
         if (!this.gameInProgress) return;
 
+        // --- Angle Adjustment Input ---
+        if (this.cursors.up.isDown) {
+            this.launchAngle -= this.angleAdjustSpeed;
+        } else if (this.cursors.down.isDown) {
+            this.launchAngle += this.angleAdjustSpeed;
+        }
+        // Clamp the angle
+        this.launchAngle = Phaser.Math.Clamp(this.launchAngle, this.minLaunchAngle, this.maxLaunchAngle);
+        // ----------------------------
+
         // Update paddle position based on input
-        this.paddle.update(this.cursors);
+        this.paddle.update(this.cursors); // Pass full cursors object
+
+        // --- Update Barrel Visualization ---
+        this.barrelGraphics.clear(); // Clear previous frame's line
+        if (this.paddle && this.paddle.sprite) { // Check if paddle exists
+            const paddleX = this.paddle.getX();
+            const paddleY = this.paddle.getY();
+            const angleRad = Phaser.Math.DegToRad(this.launchAngle); // Convert angle to radians
+            const endX = paddleX + this.barrelLength * Math.cos(angleRad);
+            const endY = paddleY + this.barrelLength * Math.sin(angleRad);
+            this.barrelGraphics.lineStyle(2, 0xffffff);
+            this.barrelGraphics.lineBetween(paddleX, paddleY, endX, endY);
+        }
+        // ---------------------------------
 
         // Check for paddle-ball collisions
         this.physics.overlap(this.paddle.sprite, this.balls, (paddleSprite, ballSprite) => {
@@ -639,6 +675,12 @@ export default class GameScene extends Phaser.Scene {
             }
             console.log("Block cleanup finished.");
             // -------------------------------------------
+
+            // Destroy barrel graphics
+            if (this.barrelGraphics) {
+                this.barrelGraphics.destroy();
+                this.barrelGraphics = null;
+            }
 
             // Destroy the paddle if it exists
             if (this.paddle) {
