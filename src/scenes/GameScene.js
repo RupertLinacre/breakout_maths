@@ -154,6 +154,9 @@ export default class GameScene extends Phaser.Scene {
         // Reset difficulty to initial values at the start of a new game
         this.resetDifficulty();
 
+        // Reset barrel/aim state
+        this.resetBarrelState();
+
         // Setup game groups
         this.blocks = this.physics.add.staticGroup();
         this.balls = this.physics.add.group();
@@ -585,6 +588,9 @@ export default class GameScene extends Phaser.Scene {
         // Reset difficulty to current configuration values
         this.resetDifficulty();
 
+        // Reset barrel/aim state
+        this.resetBarrelState();
+
         // Reset game state
         this.gameInProgress = true;
         this.physics.resume();
@@ -837,5 +843,25 @@ export default class GameScene extends Phaser.Scene {
         const newHeight = GameConfig.layout.gameHeight;
         this.scale.resize(newWidth, newHeight);
         this.scene.restart();
+    }
+
+    /**
+     * Reset the barrel/aim state (angle, graphics, etc.)
+     */
+    resetBarrelState() {
+        // Destroy old graphics if they exist
+        if (this.barrelGraphics) {
+            this.barrelGraphics.destroy();
+            this.barrelGraphics = null;
+        }
+        this.launchAngle = -90; // Initial angle (straight up)
+        this.minLaunchAngle = -179;
+        this.maxLaunchAngle = -1;
+        this.angleAdjustSpeed = 1;
+        this.barrelLength = 75;
+        // Create new graphics if scene is active
+        if (this.add && typeof this.add.graphics === 'function') {
+            this.barrelGraphics = this.add.graphics({ lineStyle: { width: 2, color: 0xffffff } });
+        }
     }
 }
