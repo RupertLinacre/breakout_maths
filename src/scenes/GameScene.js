@@ -57,6 +57,10 @@ export default class GameScene extends Phaser.Scene {
         this.gameInProgress = true;
         this.blockGrid = [];
         this.mathBlocks = [];
+
+        // --- Repeat Count ---
+        this.repeatCount = 0;
+        // -------------------
     }
 
     /**
@@ -496,6 +500,33 @@ export default class GameScene extends Phaser.Scene {
                     const points = block.problem ? (block.problem.answer * 10) * block.scoreMultiplier : 20;
                     totalPointsFromNew += points; // Add to total for this answer submission
                     newlySolvedBlocks.push(block); // Add to list for potential message customization
+
+                    // --- NEW: Increment Repeat Count ---
+                    const blockTextureKey = block.texture;
+                    let repeatsToAdd = 0;
+                    let shouldDouble = false;
+                    switch (blockTextureKey) {
+                        case 'blockEasy': // Green
+                            repeatsToAdd = 1;
+                            break;
+                        case 'blockMedium': // Orange
+                            repeatsToAdd = 2;
+                            break;
+                        case 'blockHard': // Red
+                            repeatsToAdd = 3;
+                            break;
+                        case 'blockVeryHard': // Purple
+                            shouldDouble = true;
+                            break;
+                        default:
+                            repeatsToAdd = 0;
+                    }
+                    if (shouldDouble) {
+                        this.doubleRepeats();
+                    } else if (repeatsToAdd > 0) {
+                        this.incrementRepeats(repeatsToAdd);
+                    }
+                    // --- END NEW ---
                 }
                 // If block was already solved, we just release balls (handled above) and do nothing else here.
             }
@@ -594,6 +625,15 @@ export default class GameScene extends Phaser.Scene {
         // Reset game state
         this.gameInProgress = true;
         this.physics.resume();
+
+        // --- Reset repeat count ---
+        this.repeatCount = 0;
+        // Make sure the UI is updated on restart too
+        const uiScene = this.scene.get('UIScene');
+        if (uiScene && typeof uiScene.updateRepeatDisplay === 'function') {
+            uiScene.updateRepeatDisplay(this.repeatCount);
+        }
+        // --------------------------
 
         // Recreate game objects
         this.createBlockGrid();
@@ -694,6 +734,9 @@ export default class GameScene extends Phaser.Scene {
                 this.paddle.destroy();
                 this.paddle = null;
             }
+            // --- Reset repeat count on cleanup ---
+            this.repeatCount = 0;
+            // ------------------------------------
             console.log("Cleanup complete.");
         } catch (e) {
             console.error("Error cleaning up game objects:", e);
@@ -863,5 +906,59 @@ export default class GameScene extends Phaser.Scene {
         if (this.add && typeof this.add.graphics === 'function') {
             this.barrelGraphics = this.add.graphics({ lineStyle: { width: 2, color: 0xffffff } });
         }
+    }
+
+    /**
+     * Get the current repeat count
+     */
+    getRepeatCount() {
+        return this.repeatCount;
+    }
+
+    /**
+     * Increment the repeat count by a given amount
+     * @param {number} amount
+     */
+    incrementRepeats(amount) {
+        this.repeatCount += amount;
+        // Optionally, prevent negative counts if needed later
+        // this.repeatCount = Math.max(0, this.repeatCount);
+        console.log(`Repeats incremented by ${amount}. New count: ${this.repeatCount}`); // For debugging
+        // Notify UI Scene to update display
+        const uiScene = this.scene.get('UIScene');
+        if (uiScene && typeof uiScene.updateRepeatDisplay === 'function') {
+            uiScene.updateRepeatDisplay(this.repeatCount);
+        }
+    }
+
+    /**
+     * Double the repeat count
+     */
+    doubleRepeats() {
+        // Doubles the current count. If 0, stays 0. If 1, becomes 2 etc.
+        this.repeatCount *= 2;
+        console.log(`Repeats doubled. New count: ${this.repeatCount}`); // For debugging
+        // Notify UI Scene to update display
+        const uiScene = this.scene.get('UIScene');
+        if (uiScene && typeof uiScene.updateRepeatDisplay === 'function') {
+            uiScene.updateRepeatDisplay(this.repeatCount);
+        }
+    }
+
+    /**
+     * Decrement the repeat count by 1 (minimum 0)
+     * @returns {boolean} true if decremented, false if already 0
+     */
+    decrementRepeats() {
+        if (this.repeatCount > 0) {
+            this.repeatCount--;
+            // Notify UI Scene to update display
+            const uiScene = this.scene.get('UIScene');
+            if (uiScene && typeof uiScene.updateRepeatDisplay === 'function') {
+                uiScene.updateRepeatDisplay(this.repeatCount);
+            }
+            return true; // Successfully decremented
+        }
+        return false; // No repeats to decrement
     }
 }

@@ -19,6 +19,9 @@ export default class UIScene extends Phaser.Scene {
         this.inputActive = true; // Flag to control if input is accepted
         this.maxLength = 6; // Max characters for input
         this.lastSubmittedAnswer = null; // Store last successfully submitted answer
+        // --- Repeat Count Text ---
+        this.repeatCountText = null;
+        // ------------------------
     }
 
     /**
@@ -37,6 +40,12 @@ export default class UIScene extends Phaser.Scene {
         const scoreX = 20;
         const scoreY = gameHeight - 70; // Position relative to calculated height
         this.scoreText = this.add.text(scoreX, scoreY, 'Score: 0', { fontSize: '24px' });
+
+        // --- Repeat Count Text (NEW) ---
+        const repeatTextX = 20;
+        const repeatTextY = 20;
+        this.repeatCountText = this.add.text(repeatTextX, repeatTextY, 'Repeats: 0', { fontSize: '24px', color: '#ffffff' });
+        // --------------------------------
 
         // --- Message Text (Existing) ---
         const messageX = gameWidth / 2;
@@ -133,6 +142,16 @@ export default class UIScene extends Phaser.Scene {
     }
 
     /**
+     * Update the repeat count display
+     * @param {number} count
+     */
+    updateRepeatDisplay(count) {
+        if (this.repeatCountText) {
+            this.repeatCountText.setText(`Repeats: ${count}`);
+        }
+    }
+
+    /**
      * Reset score display
      * Added method for GameScene to call
      */
@@ -155,6 +174,12 @@ export default class UIScene extends Phaser.Scene {
         }
         this.inputActive = true; // Ensure input is active
         this.lastSubmittedAnswer = null; // <-- Reset last answer on restart
+        // --- Reset repeat count text ---
+        if (this.repeatCountText) {
+            this.repeatCountText.setText('Repeats: 0');
+            this.repeatCountText.setVisible(true);
+        }
+        // ------------------------------
     }
 
     /**
@@ -184,6 +209,11 @@ export default class UIScene extends Phaser.Scene {
         if (this.answerInputBackground) {
             this.answerInputBackground.setVisible(false);
         }
+        // --- Hide repeat count text on victory (optional) ---
+        if (this.repeatCountText) {
+            this.repeatCountText.setVisible(false);
+        }
+        // ---------------------------------------------------
 
         // --- Existing Victory Screen Logic ---
         const gameWidth = this.scale.width;
@@ -229,6 +259,11 @@ export default class UIScene extends Phaser.Scene {
 
         // Reset score and UI elements
         this.resetScoreDisplay();
+        // --- Show repeat count text again ---
+        if (this.repeatCountText) {
+            this.repeatCountText.setVisible(true);
+        }
+        // ------------------------------------
 
         // Call the GameScene's restartGame method to reset the game state
         const gameScene = this.scene.get('GameScene');
@@ -285,6 +320,11 @@ export default class UIScene extends Phaser.Scene {
         if (this.answerTextDisplay) {
             this.answerTextDisplay.setPosition(inputX, inputY);
             console.log("Resize - Setting Text Pos:", inputX, inputY);
+        }
+
+        // Update repeat count text position (top-left)
+        if (this.repeatCountText) {
+            this.repeatCountText.setPosition(20, 20);
         }
 
         // Update victory elements position
