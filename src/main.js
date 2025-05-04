@@ -72,7 +72,7 @@ setTimeout(() => {
         });
         numRowsInput.addEventListener('change', (e) => {
             const val = parseInt(e.target.value, 10);
-            if (val >= 1 && val <= 20) {
+            if (val >= 1 && val <= 500) {
                 const gameScene = game.scene.getScene('GameScene');
                 if (gameScene && typeof gameScene.setNumRowsAndRestart === 'function') {
                     gameScene.setNumRowsAndRestart(val);
