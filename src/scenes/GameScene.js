@@ -493,25 +493,24 @@ export default class GameScene extends Phaser.Scene {
 
             // Check only if block is valid, active and the answer matches
             if (block && block.sprite && block.sprite.active && block.checkAnswer(answer)) {
-
-                // --- NEW: Store Strategy BEFORE releasing balls ---
-                this.lastActivatedStrategy = block.ballReleaseStrategy;
-                this.lastActivationParams = {
-                    paddleX: this.paddle.getX(),
-                    paddleY: this.paddle.getY(),
-                    targetX: block.x,
-                    targetY: block.y
-                };
-                console.log("Stored last strategy:", this.lastActivatedStrategy?.constructor?.name);
-                // --- END NEW ---
-
-                // 2. Always release balls if the answer matches
-                console.log(`Answer matched for block at [${block.getColumn()}, ?]. Releasing balls.`);
-                block.releaseBalls();
-                ballsReleasedFromAny = true; // Mark that *some* action happened
-
-                // 3. Check if it's the FIRST time this block is being solved
+                // --- Only process if NOT already solved ---
                 if (!block.isSolved) {
+                    // Store Strategy BEFORE releasing balls
+                    this.lastActivatedStrategy = block.ballReleaseStrategy;
+                    this.lastActivationParams = {
+                        paddleX: this.paddle.getX(),
+                        paddleY: this.paddle.getY(),
+                        targetX: block.x,
+                        targetY: block.y
+                    };
+                    console.log("Stored last strategy:", this.lastActivatedStrategy?.constructor?.name);
+
+                    // Release balls for newly solved block
+                    console.log(`Answer matched for UNSOLVED block at [${block.getColumn()}, ?]. Releasing balls.`);
+                    block.releaseBalls();
+                    ballsReleasedFromAny = true;
+
+                    // Mark as solved and give feedback
                     console.log(`Block at [${block.getColumn()}, ?] is newly solved.`);
                     block.isSolved = true;
                     if (block.sprite) {
@@ -520,10 +519,10 @@ export default class GameScene extends Phaser.Scene {
 
                     // Calculate points for this newly solved block
                     const points = block.problem ? (block.problem.answer * 10) * block.scoreMultiplier : 20;
-                    totalPointsFromNew += points; // Add to total for this answer submission
-                    newlySolvedBlocks.push(block); // Add to list for potential message customization
+                    totalPointsFromNew += points;
+                    newlySolvedBlocks.push(block);
 
-                    // --- NEW: Increment Repeat Count ---
+                    // Repeat Count Logic
                     const blockTextureKey = block.texture;
                     let repeatsToAdd = 0;
                     let shouldDouble = false;
@@ -548,17 +547,16 @@ export default class GameScene extends Phaser.Scene {
                     } else if (repeatsToAdd > 0) {
                         this.incrementRepeats(repeatsToAdd);
                     }
-                    // --- END NEW ---
+                } else {
+                    // Block was already solved, do nothing for this block.
+                    console.log(`Answer matched for block at [${block.getColumn()}, ?], but it was already solved. No action taken.`);
                 }
-                // If block was already solved, we just release balls (handled above) and do nothing else here.
             }
         }
 
         // 4. Process results after checking all blocks
         if (ballsReleasedFromAny) {
-            // An action occurred (either new solve or re-answer ball release)
-
-            // Update score ONLY with points from newly solved blocks
+            // An action occurred (a new solve)
             if (totalPointsFromNew > 0 && this.uiScene) {
                 this.uiScene.updateScore(totalPointsFromNew);
             }
@@ -573,21 +571,33 @@ export default class GameScene extends Phaser.Scene {
                     message += ` (1 block solved)`;
                 }
             } else {
-                message += " (Balls released)"; // Indicate re-answer success
+                message += " (Balls released)";
             }
             this.showMessage(message, '#27ae60');
-
-            // --- assignMathProblemToColumn is NOT called here ---
 
             return { correct: true, points: totalPointsFromNew }; // Return success
 
         } else {
-            // No block matched the answer at all
-            if (this.uiScene) {
-                this.uiScene.updateScore(-5); // Penalty
+            // No block matched the answer, or all matched blocks were already solved
+            let alreadySolvedMatch = false;
+            for (let i = 0; i < this.mathBlocks.length; i++) {
+                const block = this.mathBlocks[i];
+                if (block && block.sprite && block.sprite.active && block.checkAnswer(answer) && block.isSolved) {
+                    alreadySolvedMatch = true;
+                    break;
+                }
             }
-            this.showMessage('Try again!', '#e74c3c');
-            return { correct: false, points: 0 }; // Return failure
+
+            if (alreadySolvedMatch) {
+                this.showMessage('Already solved!', '#f39c12'); // Orange for already solved
+                return { correct: false, points: 0 };
+            } else {
+                if (this.uiScene) {
+                    this.uiScene.updateScore(-5); // Penalty
+                }
+                this.showMessage('Try again!', '#e74c3c');
+                return { correct: false, points: 0 };
+            }
         }
     }
 
