@@ -67,23 +67,29 @@
       /* No space after last line */
     }
 
-    .instructions {
+    .instructions-details {
       margin-top: 10px;
-      padding: 10px 10px 1px 10px;
-      /* Reduced bottom padding */
+      padding: 10px;
       background-color: #f9f9f9;
       border-radius: 4px;
       border-left: 4px solid #2ecc71;
     }
 
-    .instructions ul {
-      padding-left: 20px;
-      /* Indent list */
-      margin-top: 5px;
-      margin-bottom: 10px;
+    .instructions-details summary {
+      cursor: pointer;
+      font-weight: bold;
+      outline: none;
+      /* Remove default focus outline */
     }
 
-    .instructions li {
+    .instructions-content ul {
+      padding-left: 20px;
+      margin-top: 10px;
+      /* Add space below summary */
+      margin-bottom: 5px;
+    }
+
+    .instructions-content li {
       margin-bottom: 5px;
       /* Space between list items */
     }
@@ -144,7 +150,7 @@
       margin-top: 0;
       /* Removed top margin as it's below game */
       margin-bottom: 20px;
-      text-align: center;
+      text-align: left;
       padding: 15px;
       background-color: #fff;
       border-radius: 5px;
@@ -157,28 +163,41 @@
       display: block;
       margin-bottom: 10px;
       font-size: 1.1em;
+      text-align: center;
+      /* Center the heading */
     }
 
-    .layout-controls div {
-      margin-bottom: 10px;
+    .layout-controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      /* Allow controls to wrap to the next line */
+      justify-content: center;
+      /* Center controls horizontally */
+      gap: 10px 20px;
+      /* Add spacing between controls (row gap, column gap) */
     }
 
-    .layout-controls div:last-child {
+    /* Remove margin-bottom from individual divs inside the row */
+    .layout-controls-row>div {
       margin-bottom: 0;
+      display: flex;
+      /* Align label and input */
+      align-items: center;
     }
 
     .layout-controls label {
-      display: inline-block;
-      min-width: 100px;
-      /* Align labels */
+      /* display: inline-block; */
+      /* No longer needed with flex */
+      min-width: auto;
+      /* Remove fixed width */
       text-align: right;
       margin-right: 5px;
     }
 
     .layout-controls input {
       width: 60px;
-      margin-left: 5px;
-      /* Reduced margin */
+      margin-left: 0;
+      /* Remove left margin */
       padding: 5px;
       text-align: center;
     }
@@ -188,6 +207,38 @@
       margin-top: 0;
       /* Removed top margin */
       text-align: center;
+    }
+
+    /* New styles for collapsible instructions */
+    .instructions-details {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 10px;
+      margin-top: 10px;
+      border-left: 4px solid #2ecc71;
+    }
+
+    .instructions-content {
+      padding-top: 5px;
+    }
+
+    /* Flexbox layout for layout controls */
+    .layout-controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    .layout-controls-row div {
+      flex: 1 1 calc(25% - 10px);
+      /* Responsive columns */
+      margin-right: 10px;
+      /* Space between columns */
+    }
+
+    .layout-controls-row div:last-child {
+      margin-right: 0;
     }
   </style>
 </head>
@@ -217,43 +268,47 @@
         <div><span class="block-color purple"></span> Loading...</div>
       </div>
 
-      <!-- Instructions -->
-      <div class="instructions">
-        <strong>How to play:</strong>
-        <ul>
-          <li>Use <strong>LEFT/RIGHT</strong> arrow keys to move the paddle.</li>
-          <li>Use <strong>UP/DOWN</strong> arrow keys to adjust launch angle.</li>
-          <li>When you hit a math block, solve the problem by typing the answer and pressing <strong>ENTER</strong>.
-          </li>
-          <li>Correct answers release balls (see above) and award points.</li>
-          <li>Press <strong>R</strong> to repeat the last ball release effect (costs repeats earned from blocks).</li>
-          <li>Paddle does not deflect balls by default.</li>
-        </ul>
-      </div>
+      <!-- Instructions (now collapsible) -->
+      <details class="instructions-details">
+        <summary><strong>How to play:</strong></summary>
+        <div class="instructions-content">
+          <ul>
+            <li>Use <strong>LEFT/RIGHT</strong> arrow keys to move the paddle.</li>
+            <li>Use <strong>UP/DOWN</strong> arrow keys to adjust launch angle.</li>
+            <li>When you hit a math block, solve the problem by typing the answer and pressing <strong>ENTER</strong>.
+            </li>
+            <li>Correct answers release balls (see above) and award points.</li>
+            <li>Press <strong>R</strong> to repeat the last ball release effect (costs repeats earned from blocks).</li>
+            <li>Paddle does not deflect balls by default.</li>
+          </ul>
+        </div>
+      </details>
     </div> <!-- End container for top controls/info -->
 
     <!-- Game Canvas Container (Moved outside .container for full width) -->
     <div id="game-container"></div>
 
     <div class="container">
-      <!-- Layout Controls -->
+      <!-- Layout Controls (now more compact, flex layout) -->
       <div class="layout-controls">
         <strong>Layout Controls:</strong>
-        <div>
-          <label for="numColumnsInput">Columns:</label>
-          <input id="numColumnsInput" type="number" min="2" max="1000">
-        </div>
-        <div>
-          <label for="numRowsInput">Rows:</label>
-          <input id="numRowsInput" type="number" min="1" max="2000">
-        </div>
-        <div>
-          <label for="topPaddingInput">Top Padding:</label>
-          <input id="topPaddingInput" type="number" min="0" max="500" step="1">
-        </div>
-        <div>
-          <label for="sidePaddingInput">Side Padding:</label>
-          <input id="sidePaddingInput" type="number" min="0" max="500" step="1">
+        <div class="layout-controls-row">
+          <div>
+            <label for="numColumnsInput">Columns:</label>
+            <input id="numColumnsInput" type="number" min="2" max="1000">
+          </div>
+          <div>
+            <label for="numRowsInput">Rows:</label>
+            <input id="numRowsInput" type="number" min="1" max="2000">
+          </div>
+          <div>
+            <label for="topPaddingInput">Top Padding:</label>
+            <input id="topPaddingInput" type="number" min="0" max="500" step="1">
+          </div>
+          <div>
+            <label for="sidePaddingInput">Side Padding:</label>
+            <input id="sidePaddingInput" type="number" min="0" max="500" step="1">
+          </div>
         </div>
       </div>
 
