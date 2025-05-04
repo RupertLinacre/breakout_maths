@@ -120,10 +120,17 @@
       border-radius: 5px;
       overflow: hidden;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      margin: 0 auto 20px auto;
-      /* Added bottom margin */
+      margin-bottom: 20px;
+      width: 100vw;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+      min-height: 400px;
+      background: #222;
+      /* Add flex properties to center the canvas inside */
       display: flex;
       justify-content: center;
+      /* align-items: center; /* Optional: Uncomment for vertical centering */
     }
 
     .difficulty-name {
@@ -223,35 +230,37 @@
           <li>Paddle does not deflect balls by default.</li>
         </ul>
       </div>
-    </div>
+    </div> <!-- End container for top controls/info -->
 
-    <!-- Game Canvas Container -->
+    <!-- Game Canvas Container (Moved outside .container for full width) -->
     <div id="game-container"></div>
 
-    <!-- Layout Controls -->
-    <div class="layout-controls">
-      <strong>Layout Controls:</strong>
-      <div>
-        <label for="numColumnsInput">Columns:</label>
-        <input id="numColumnsInput" type="number" min="2" max="1000">
+    <div class="container">
+      <!-- Layout Controls -->
+      <div class="layout-controls">
+        <strong>Layout Controls:</strong>
+        <div>
+          <label for="numColumnsInput">Columns:</label>
+          <input id="numColumnsInput" type="number" min="2" max="1000">
+        </div>
+        <div>
+          <label for="numRowsInput">Rows:</label>
+          <input id="numRowsInput" type="number" min="1" max="2000">
+        </div>
+        <div>
+          <label for="topPaddingInput">Top Padding:</label>
+          <input id="topPaddingInput" type="number" min="0" max="500" step="1">
+        </div>
+        <div>
+          <label for="sidePaddingInput">Side Padding:</label>
+          <input id="sidePaddingInput" type="number" min="0" max="500" step="1">
+        </div>
       </div>
-      <div>
-        <label for="numRowsInput">Rows:</label>
-        <input id="numRowsInput" type="number" min="1" max="2000">
-      </div>
-      <div>
-        <label for="topPaddingInput">Top Padding:</label>
-        <input id="topPaddingInput" type="number" min="0" max="500" step="1">
-      </div>
-      <div>
-        <label for="sidePaddingInput">Side Padding:</label>
-        <input id="sidePaddingInput" type="number" min="0" max="500" step="1">
-      </div>
-    </div>
 
-    <!-- Link -->
-    <div class="code-available-here">
-      <a href="https://github.com/RupertLinacre/breakout_maths" target="_blank">Code for game available here</a>
+      <!-- Link -->
+      <div class="code-available-here">
+        <a href="https://github.com/RupertLinacre/breakout_maths" target="_blank">Code for game available here</a>
+      </div>
     </div>
   </div>
 
