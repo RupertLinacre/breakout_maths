@@ -60,6 +60,9 @@ export default class GameScene extends Phaser.Scene {
 
         // --- Repeat Count ---
         this.repeatCount = 0;
+        // --- Repeat Trigger State ---
+        this.lastActivatedStrategy = null;
+        this.lastActivationParams = null;
         // -------------------
     }
 
@@ -472,9 +475,9 @@ export default class GameScene extends Phaser.Scene {
      * @returns {object} Result with correct flag and points
      */
     checkAnswer(answer) {
-        let newlySolvedBlocks = []; // Track blocks solved *this time*
-        let ballsReleasedFromAny = false; // Track if any block released balls
-        let totalPointsFromNew = 0; // Accumulate points only from newly solved blocks
+        let newlySolvedBlocks = [];
+        let ballsReleasedFromAny = false;
+        let totalPointsFromNew = 0;
 
         // 1. Iterate through ALL active math blocks
         for (let i = 0; i < this.mathBlocks.length; i++) {
@@ -482,6 +485,17 @@ export default class GameScene extends Phaser.Scene {
 
             // Check only if block is valid, active and the answer matches
             if (block && block.sprite && block.sprite.active && block.checkAnswer(answer)) {
+
+                // --- NEW: Store Strategy BEFORE releasing balls ---
+                this.lastActivatedStrategy = block.ballReleaseStrategy;
+                this.lastActivationParams = {
+                    paddleX: this.paddle.getX(),
+                    paddleY: this.paddle.getY(),
+                    targetX: block.x,
+                    targetY: block.y
+                };
+                console.log("Stored last strategy:", this.lastActivatedStrategy?.constructor?.name);
+                // --- END NEW ---
 
                 // 2. Always release balls if the answer matches
                 console.log(`Answer matched for block at [${block.getColumn()}, ?]. Releasing balls.`);
@@ -575,8 +589,9 @@ export default class GameScene extends Phaser.Scene {
      * @param {string} color - Text color (hex)
      */
     showMessage(text, color) {
-        if (this.uiScene && this.uiScene.showMessage) {
-            this.uiScene.showMessage(text, color);
+        const uiScene = this.scene.get('UIScene');
+        if (uiScene && typeof uiScene.showMessage === 'function') {
+            uiScene.showMessage(text, color);
         }
     }
 
@@ -633,8 +648,10 @@ export default class GameScene extends Phaser.Scene {
         if (uiScene && typeof uiScene.updateRepeatDisplay === 'function') {
             uiScene.updateRepeatDisplay(this.repeatCount);
         }
+        // --- Reset repeat trigger state ---
+        this.lastActivatedStrategy = null;
+        this.lastActivationParams = null;
         // --------------------------
-
         // Recreate game objects
         this.createBlockGrid();
 
@@ -960,5 +977,44 @@ export default class GameScene extends Phaser.Scene {
             return true; // Successfully decremented
         }
         return false; // No repeats to decrement
+    }
+
+    /**
+     * Trigger the repeat of the last activated strategy
+     */
+    triggerRepeat() {
+        if (this.repeatCount <= 0) {
+            console.log("Cannot trigger repeat: No repeats left.");
+            this.showMessage("No repeats left!", "#f39c12");
+            return;
+        }
+        if (!this.lastActivatedStrategy || !this.lastActivationParams) {
+            console.log("Cannot trigger repeat: No strategy stored yet.");
+            this.showMessage("Solve a block first!", "#f39c12");
+            return;
+        }
+        console.log("Triggering repeat of strategy:", this.lastActivatedStrategy.constructor.name);
+        // Decrement count first
+        if (this.decrementRepeats()) {
+            // Execute the stored strategy with stored parameters
+            const ballSpecs = this.lastActivatedStrategy.execute(
+                this,
+                this.lastActivationParams.paddleX,
+                this.lastActivationParams.paddleY,
+                this.lastActivationParams.targetX,
+                this.lastActivationParams.targetY
+            );
+            // If the strategy returns specs, shoot them now from the current paddle position
+            if (Array.isArray(ballSpecs)) {
+                const currentPaddleX = this.paddle.getX();
+                const currentPaddleY = this.paddle.getY();
+                ballSpecs.forEach(spec => {
+                    if (spec && spec.direction) {
+                        this.shootBall(currentPaddleX, currentPaddleY - 10, spec.direction, undefined, spec.speed);
+                    }
+                });
+            }
+            // If the strategy itself shoots balls (like Spray), nothing extra needed
+        }
     }
 }

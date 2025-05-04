@@ -379,13 +379,14 @@ export default class UIScene extends Phaser.Scene {
                 this.currentAnswerString = this.currentAnswerString.slice(0, -1);
             }
             event.preventDefault(); // Prevent browser back navigation
-        } else if (key === 'r' || key === 'R') { // <-- ADD THIS NEW BLOCK
-            if (this.inputActive && this.lastSubmittedAnswer !== null) {
-                // Optional feedback:
-                // this.showMessage(`Resubmitting: ${this.lastSubmittedAnswer}`, '#3498db');
-                this.submitAnswer(this.lastSubmittedAnswer);
+        } else if (key === 'r' || key === 'R') {
+            if (this.inputActive) { // Only trigger if game input is active
+                const gameScene = this.scene.get('GameScene');
+                if (gameScene && typeof gameScene.triggerRepeat === 'function') {
+                    gameScene.triggerRepeat();
+                }
             }
-            event.preventDefault();
+            event.preventDefault(); // Prevent default 'r' key actions
         } else if (key === 'Enter') {
             // Handle Enter (Submit)
             if (this.currentAnswerString.length > 0) {
