@@ -12,6 +12,8 @@ export default class UIScene extends Phaser.Scene {
         super({ key: 'UIScene', active: true });
         this.score = 0;
         this.victoryElements = null;
+        this.completionTime = null;
+        this.timerText = null; // Add timer text field
         // Add properties for the in-game input
         this.currentAnswerString = '';
         this.answerTextDisplay = null; // Will hold the Phaser Text object
@@ -37,9 +39,9 @@ export default class UIScene extends Phaser.Scene {
         // --- END CHANGE ---
 
         // --- Score Text (Existing) ---
-        const scoreX = 20;
-        const scoreY = gameHeight - 70; // Position relative to calculated height
-        this.scoreText = this.add.text(scoreX, scoreY, 'Score: 0', { fontSize: '24px' });
+        // const scoreX = 20;
+        // const scoreY = gameHeight - 70; // Position relative to calculated height
+        // this.scoreText = this.add.text(scoreX, scoreY, 'Score: 0', { fontSize: '24px' });
 
         // --- Repeat Count Text (NEW) ---
         const repeatTextX = 20;
@@ -82,6 +84,15 @@ export default class UIScene extends Phaser.Scene {
                 fixedHeight: inputHeight - 10
             }
         ).setOrigin(0.5); // Center the text
+
+        // --- Timer Text (Top Right) ---
+        this.timerText = this.add.text(gameWidth - 30, 20, '00:00.00', {
+            fontSize: '24px',
+            color: '#ffffff',
+            align: 'right'
+        }).setOrigin(1, 0);
+        this.timerText.setVisible(true);
+        // -------------------------------
 
         // Logging (optional now, but good for verification)
         console.log("UIScene Create - Game Height:", gameHeight, "Calculated Input Y:", inputY);
@@ -138,7 +149,7 @@ export default class UIScene extends Phaser.Scene {
      */
     updateScore(points) {
         this.score = Math.max(0, this.score + points);
-        this.scoreText.setText(`Score: ${this.score}`);
+        // if (this.scoreText) this.scoreText.setText(`Score: ${this.score}`); // Hide score text
     }
 
     /**
@@ -157,9 +168,7 @@ export default class UIScene extends Phaser.Scene {
      */
     resetScoreDisplay() {
         this.score = 0;
-        if (this.scoreText) {
-            this.scoreText.setText('Score: 0');
-        }
+        // if (this.scoreText) this.scoreText.setText('Score: 0'); // Hide score text
         if (this.messageText) {
             this.messageText.setText('');
         }
@@ -178,6 +187,12 @@ export default class UIScene extends Phaser.Scene {
         if (this.repeatCountText) {
             this.repeatCountText.setText('Repeats: 0');
             this.repeatCountText.setVisible(true);
+        }
+        // ------------------------------
+        // --- Reset timer text ---
+        if (this.timerText) {
+            this.timerText.setText('00:00.00');
+            this.timerText.setVisible(true);
         }
         // ------------------------------
     }
@@ -199,32 +214,31 @@ export default class UIScene extends Phaser.Scene {
     /**
      * Show victory screen
      */
-    showVictory() {
+    showVictory(timeInSeconds) {
         this.inputActive = false; // Disable input capture
-        this.currentAnswerString = ''; // Clear any pending input
+        this.currentAnswerString = '';
         if (this.answerTextDisplay) {
-            this.answerTextDisplay.setText(''); // Clear visual display
-            this.answerTextDisplay.setVisible(false); // Hide input field
+            this.answerTextDisplay.setText('');
+            this.answerTextDisplay.setVisible(false);
         }
         if (this.answerInputBackground) {
             this.answerInputBackground.setVisible(false);
         }
-        // --- Hide repeat count text on victory (optional) ---
         if (this.repeatCountText) {
             this.repeatCountText.setVisible(false);
         }
-        // ---------------------------------------------------
-
-        // --- Existing Victory Screen Logic ---
+        if (this.timerText) {
+            this.timerText.setVisible(false); // Hide timer on victory
+        }
+        // Store and use completion time
+        this.completionTime = timeInSeconds;
         const gameWidth = this.scale.width;
         const gameHeight = this.scale.height;
         const centerX = gameWidth / 2;
         const centerY = gameHeight / 2;
-
         const bg = this.add.rectangle(centerX, centerY, 400, 200, 0x000000, 0.7);
-        // Adjust text y-position slightly if needed due to input field removal space
         const text = this.add.text(centerX, centerY - 20,
-            `Victory!\nYour score: ${this.score}`,
+            `Victory!\nTime: ${this.formatTime(this.completionTime)}`,
             { fontSize: '32px', color: '#fff', align: 'center' }
         ).setOrigin(0.5);
         const button = this.add.text(centerX, centerY + 50, 'Play Again', {
@@ -237,14 +251,10 @@ export default class UIScene extends Phaser.Scene {
             fontSize: '16px',
             color: '#fff'
         }).setOrigin(0.5);
-
         this.victoryElements = [bg, text, button, enterText];
-
         button.on('pointerdown', () => {
             this.restartFromVictory();
         });
-        // Note: The global Enter listener handles restart via keyboard
-        // --- End Existing Logic ---
     }
 
     /**
@@ -297,10 +307,10 @@ export default class UIScene extends Phaser.Scene {
 
         // --- Update positions using effectiveWidth/Height from this.scale ---
         // Update score text position
-        if (this.scoreText) {
-            const scoreY = effectiveHeight - 70;
-            this.scoreText.setPosition(20, scoreY);
-        }
+        // if (this.scoreText) {
+        //     const scoreY = effectiveHeight - 70;
+        //     this.scoreText.setPosition(20, scoreY);
+        // }
 
         // Update message text position
         if (this.messageText) {
@@ -325,6 +335,12 @@ export default class UIScene extends Phaser.Scene {
         // Update repeat count text position (top-left)
         if (this.repeatCountText) {
             this.repeatCountText.setPosition(20, 20);
+        }
+
+        // Update timer text position (top right)
+        if (this.timerText) {
+            const effectiveWidth = this.scale.width;
+            this.timerText.setPosition(effectiveWidth - 30, 20);
         }
 
         // Update victory elements position
@@ -408,5 +424,31 @@ export default class UIScene extends Phaser.Scene {
         if (this.answerTextDisplay) {
             this.answerTextDisplay.setText(this.currentAnswerString || '_'); // Show '_' if empty
         }
+    }
+
+    /**
+     * Update the timer display
+     * @param {number} currentSeconds - Current time in seconds
+     */
+    updateTimer(currentSeconds) {
+        if (this.timerText) {
+            this.timerText.setText(this.formatTime(currentSeconds));
+        }
+    }
+
+    /**
+     * Format the time for display
+     * @param {number} totalSeconds - Time in seconds
+     * @returns {string} - Formatted time string
+     */
+    formatTime(totalSeconds) {
+        if (totalSeconds === null || totalSeconds < 0) {
+            return '00:00.00';
+        }
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        const minutesStr = String(minutes).padStart(2, '0');
+        const secondsStr = seconds.toFixed(2).padStart(5, '0');
+        return `${minutesStr}:${secondsStr}`;
     }
 }

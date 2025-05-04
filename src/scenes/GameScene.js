@@ -60,6 +60,8 @@ export default class GameScene extends Phaser.Scene {
 
         // --- Repeat Count ---
         this.repeatCount = 0;
+        // --- Timer for level completion ---
+        this.startTime = 0;
         // --- Repeat Trigger State ---
         this.lastActivatedStrategy = null;
         this.lastActivationParams = null;
@@ -382,6 +384,12 @@ export default class GameScene extends Phaser.Scene {
             }
         });
 
+        // Update timer display in UI
+        if (this.uiScene && typeof this.uiScene.updateTimer === 'function') {
+            const elapsedTimeSeconds = (this.time.now - this.startTime) / 1000;
+            this.uiScene.updateTimer(elapsedTimeSeconds);
+        }
+
         // Check for victory condition
         if (this.blocks.countActive() === 0) {
             this.victory();
@@ -619,9 +627,13 @@ export default class GameScene extends Phaser.Scene {
         this.gameInProgress = false;
         this.physics.pause();
 
-        // Tell UI Scene to show victory screen
-        const uiScene = this.scene.get('UIScene'); // Get sibling scene
-        uiScene.showVictory();
+        // Calculate elapsed time in ms and seconds
+        const elapsedTimeMs = this.time.now - this.startTime;
+        const elapsedTimeSeconds = elapsedTimeMs / 1000;
+
+        // Tell UI Scene to show victory screen with time
+        const uiScene = this.scene.get('UIScene');
+        uiScene.showVictory(elapsedTimeSeconds);
     }
 
     /**
@@ -640,6 +652,7 @@ export default class GameScene extends Phaser.Scene {
         // Reset game state
         this.gameInProgress = true;
         this.physics.resume();
+        this.startTime = this.time.now;
 
         // --- Reset repeat count ---
         this.repeatCount = 0;
