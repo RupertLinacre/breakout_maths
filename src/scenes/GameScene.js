@@ -86,34 +86,17 @@ export default class GameScene extends Phaser.Scene {
         // Create a graphics object for generating textures
         const g = this.add.graphics();
 
-        // Create paddle graphic with rounded corners using standard drawing methods
+        // --- Paddle as a Ball (Circle) ---
+        // Use paddle height as diameter for the ball paddle
+        const paddleDiameter = GameConfig.layout.paddle.height;
         g.fillStyle(0x3498db);
-
-        // Draw a rounded rectangle manually
-        const width = GameConfig.layout.paddle.width;
-        const height = GameConfig.layout.paddle.height;
-        const radius = GameConfig.layout.paddle.cornerRadius;
-
         g.beginPath();
-        // Start from top-right, moving counter-clockwise
-        g.moveTo(width - radius, 0);
-        // Top-right corner
-        g.lineTo(radius, 0);
-        g.arc(radius, radius, radius, -Math.PI / 2, Math.PI, true);
-        // Bottom-left corner
-        g.lineTo(0, height - radius);
-        g.arc(radius, height - radius, radius, Math.PI, Math.PI / 2, true);
-        // Bottom-right corner
-        g.lineTo(width - radius, height);
-        g.arc(width - radius, height - radius, radius, Math.PI / 2, 0, true);
-        // Top-right corner
-        g.lineTo(width, radius);
-        g.arc(width - radius, radius, radius, 0, -Math.PI / 2, true);
+        g.arc(paddleDiameter / 2, paddleDiameter / 2, paddleDiameter / 2, 0, Math.PI * 2);
         g.closePath();
-
         g.fillPath();
-        g.generateTexture('paddle', width, height);
+        g.generateTexture('paddle', paddleDiameter, paddleDiameter);
         g.clear();
+        // --- End Paddle as Ball ---
 
         // Create ball graphic using standard drawing methods
         g.fillStyle(0xffffff);
@@ -349,8 +332,26 @@ export default class GameScene extends Phaser.Scene {
             const endX = paddleX + this.barrelLength * Math.cos(angleRad);
             const endY = paddleY + this.barrelLength * Math.sin(angleRad);
             // Use the orange color from GameConfig for the barrel
-            this.barrelGraphics.lineStyle(2, GameConfig.layout.blockColors.year1);
+            const barrelColor = GameConfig.layout.blockColors.year1;
+            this.barrelGraphics.lineStyle(3, barrelColor);
             this.barrelGraphics.lineBetween(paddleX, paddleY, endX, endY);
+            // Draw arrowhead
+            const arrowHeadLength = 16;
+            const arrowHeadAngle = Math.PI / 7; // ~25 degrees
+            // Calculate points for arrowhead
+            const angle1 = angleRad + arrowHeadAngle;
+            const angle2 = angleRad - arrowHeadAngle;
+            const arrowX1 = endX - arrowHeadLength * Math.cos(angle1);
+            const arrowY1 = endY - arrowHeadLength * Math.sin(angle1);
+            const arrowX2 = endX - arrowHeadLength * Math.cos(angle2);
+            const arrowY2 = endY - arrowHeadLength * Math.sin(angle2);
+            this.barrelGraphics.lineStyle(3, barrelColor);
+            this.barrelGraphics.beginPath();
+            this.barrelGraphics.moveTo(endX, endY);
+            this.barrelGraphics.lineTo(arrowX1, arrowY1);
+            this.barrelGraphics.moveTo(endX, endY);
+            this.barrelGraphics.lineTo(arrowX2, arrowY2);
+            this.barrelGraphics.strokePath();
         }
         // ---------------------------------
 

@@ -69,8 +69,8 @@ const GameConfig = {
 
             // Paddle configuration
             paddle: {
-                width: 100,
-                height: 20,
+                width: this.blockGrid.blockHeight, // Make width equal to height for a circle
+                height: this.blockGrid.blockHeight, // Use blockHeight for paddle diameter
                 initialY: paddleY, // Dynamically positioned based on gameHeight
                 speed: 7,
                 cornerRadius: 10,
