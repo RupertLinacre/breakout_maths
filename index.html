@@ -19,8 +19,9 @@
     .container {
       margin: 0 auto;
       padding: 20px;
-
       width: 100%;
+      max-width: 1200px;
+      /* Limit container width for better layout */
       box-sizing: border-box;
     }
 
@@ -31,19 +32,10 @@
       border-radius: 5px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       width: 100%;
+      box-sizing: border-box;
     }
 
-    .control-row {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .control-label {
-      font-weight: bold;
-      margin-right: 15px;
-      min-width: 150px;
-    }
+    /* Removed .control-row, .control-label as they are not used directly */
 
     select {
       padding: 8px;
@@ -54,14 +46,28 @@
     }
 
     .block-info {
-      margin-top: 10px;
+      margin-top: 15px;
+      /* Increased spacing */
+      margin-bottom: 15px;
+      /* Added spacing below */
       padding: 10px;
       background-color: #f9f9f9;
       border-radius: 4px;
       border-left: 4px solid #3498db;
     }
 
-    .instructions {
+    /* Style for list items within block-info */
+    .block-info div {
+      margin-bottom: 4px;
+      /* Space between lines */
+    }
+
+    .block-info div:last-child {
+      margin-bottom: 0;
+      /* No space after last line */
+    }
+
+    .instructions-details {
       margin-top: 10px;
       padding: 10px;
       background-color: #f9f9f9;
@@ -69,12 +75,35 @@
       border-left: 4px solid #2ecc71;
     }
 
+    .instructions-details summary {
+      cursor: pointer;
+      font-weight: bold;
+      outline: none;
+      /* Remove default focus outline */
+    }
+
+    .instructions-content ul {
+      padding-left: 20px;
+      margin-top: 10px;
+      /* Add space below summary */
+      margin-bottom: 5px;
+    }
+
+    .instructions-content li {
+      margin-bottom: 5px;
+      /* Space between list items */
+    }
+
+
     .block-color {
       display: inline-block;
       width: 12px;
       height: 12px;
-      margin-right: 5px;
+      margin-right: 8px;
+      /* Increased spacing */
       border-radius: 2px;
+      vertical-align: middle;
+      /* Align color swatch nicely */
     }
 
     .green {
@@ -97,67 +126,204 @@
       border-radius: 5px;
       overflow: hidden;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-      margin: 0 auto;
+      margin-bottom: 20px;
+      width: 100vw;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+      min-height: 400px;
+      background: #222;
+      /* Add flex properties to center the canvas inside */
       display: flex;
       justify-content: center;
+      /* align-items: center; /* Optional: Uncomment for vertical centering */
     }
 
     .difficulty-name {
       font-weight: bold;
       color: #3498db;
+      margin-bottom: 8px;
+      /* Space below heading */
+    }
+
+    .layout-controls {
+      margin-top: 0;
+      /* Removed top margin as it's below game */
+      margin-bottom: 20px;
+      text-align: left;
+      padding: 15px;
+      background-color: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .layout-controls strong {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+      text-align: center;
+      /* Center the heading */
+    }
+
+    .layout-controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      /* Allow controls to wrap to the next line */
+      justify-content: center;
+      /* Center controls horizontally */
+      gap: 10px 20px;
+      /* Add spacing between controls (row gap, column gap) */
+    }
+
+    /* Remove margin-bottom from individual divs inside the row */
+    .layout-controls-row>div {
+      margin-bottom: 0;
+      display: flex;
+      /* Align label and input */
+      align-items: center;
+    }
+
+    .layout-controls label {
+      /* display: inline-block; */
+      /* No longer needed with flex */
+      min-width: auto;
+      /* Remove fixed width */
+      text-align: right;
+      margin-right: 5px;
+    }
+
+    .layout-controls input {
+      width: 60px;
+      margin-left: 0;
+      /* Remove left margin */
+      padding: 5px;
+      text-align: center;
+    }
+
+
+    .code-available-here {
+      margin-top: 0;
+      /* Removed top margin */
+      text-align: center;
+    }
+
+    /* New styles for collapsible instructions */
+    .instructions-details {
+      background-color: #f9f9f9;
+      border-radius: 4px;
+      padding: 10px;
+      margin-top: 10px;
+      border-left: 4px solid #2ecc71;
+    }
+
+    .instructions-content {
+      padding-top: 5px;
+    }
+
+    /* Flexbox layout for layout controls */
+    .layout-controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+
+    .layout-controls-row div {
+      flex: 1 1 calc(25% - 10px);
+      /* Responsive columns */
+      margin-right: 10px;
+      /* Space between columns */
+    }
+
+    .layout-controls-row div:last-child {
+      margin-right: 0;
     }
   </style>
-  <script type="module" crossorigin src="/breakout_maths/assets/index-DQEt1E6_.js"></script>
+  <script type="module" crossorigin src="/breakout_maths/assets/index-BQrVPko1.js"></script>
 </head>
 
 <body>
   <div class="container">
     <div class="game-controls">
-      <div class="instructions">
-        <strong>How to play:</strong> Use LEFT/RIGHT arrow keys to move the paddle. When you hit a math block, solve the
-        problem by typing the answer and pressing ENTER. Correct answers release balls and award points based on
-        difficulty. The paddle does not deflect balls by default.
-        <br><em>(Configuration options removed for refactoring). Default Difficulty: Year 1. Default Layout: 16x7
-          grid.</em>
-      </div>
+      <!-- Difficulty Selector -->
       <div style="margin-bottom: 10px;">
-        <label for="difficulty-selector"><strong>Difficulty:</strong></label>
+        <label for="difficulty-selector"><strong>Choose difficulty level:</strong></label>
         <select id="difficulty-selector" style="width: 120px; margin-left: 10px;">
           <option value="reception">Reception</option>
-          <option value="year1">Year 1</option>
+          <option value="year1">Year 1</option> <!-- Default or set by JS -->
           <option value="year2">Year 2</option>
           <option value="year3">Year 3</option>
           <option value="year4">Year 4</option>
         </select>
       </div>
-    </div>
+
+      <!-- Dynamic Block Info Area -->
+      <div id="dynamic-block-info" class="block-info">
+        <!-- Content will be generated by JavaScript -->
+        <div class="difficulty-name">Loading difficulty info...</div>
+        <div><span class="block-color green"></span> Loading...</div>
+        <div><span class="block-color orange"></span> Loading...</div>
+        <div><span class="block-color red"></span> Loading...</div>
+        <div><span class="block-color purple"></span> Loading...</div>
+      </div>
+
+      <!-- Instructions (now collapsible) -->
+      <details class="instructions-details">
+        <summary><strong>How to play:</strong></summary>
+        <div class="instructions-content">
+          <ul>
+            <li>Use <strong>LEFT/RIGHT</strong> arrow keys to move the paddle.</li>
+            <li>Use <strong>UP/DOWN</strong> arrow keys to adjust launch angle.</li>
+            <li>When you hit a math block, solve the problem by typing the answer and pressing <strong>ENTER</strong>.
+            </li>
+            <li>Correct answers release balls (see above) and award points.</li>
+            <li>Press <strong>R</strong> to repeat the last ball release effect (costs repeats earned from blocks).</li>
+            <li>Paddle does not deflect balls by default.</li>
+          </ul>
+        </div>
+      </details>
+    </div> <!-- End container for top controls/info -->
+
+    <!-- Game Canvas Container (Moved outside .container for full width) -->
     <div id="game-container"></div>
 
-    <div style="margin-top: 20px; text-align: center;">
-      <div style="margin-bottom: 10px;">
-        <label for="numColumnsInput"><strong>Number of Columns:</strong></label>
-        <input id="numColumnsInput" type="number" min="2" max="1000" style="width: 60px; margin-left: 10px;">
+    <div class="container">
+      <!-- Layout Controls (now more compact, flex layout) -->
+      <div class="layout-controls">
+        <strong>Layout Controls:</strong>
+        <div class="layout-controls-row">
+          <div>
+            <label for="numColumnsInput">Columns:</label>
+            <input id="numColumnsInput" type="number" min="2" max="1000">
+          </div>
+          <div>
+            <label for="numRowsInput">Rows:</label>
+            <input id="numRowsInput" type="number" min="1" max="2000">
+          </div>
+          <div>
+            <label for="topPaddingInput">Top Padding:</label>
+            <input id="topPaddingInput" type="number" min="0" max="500" step="1">
+          </div>
+          <div>
+            <label for="sidePaddingInput">Side Padding:</label>
+            <input id="sidePaddingInput" type="number" min="0" max="500" step="1">
+          </div>
+        </div>
       </div>
-      <div style="margin-bottom: 10px;">
-        <label for="numRowsInput"><strong>Number of Rows:</strong></label>
-        <input id="numRowsInput" type="number" min="1" max="20" style="width: 60px; margin-left: 10px;">
-      </div>
-      <div style="margin-bottom: 10px;">
-        <label for="topPaddingInput"><strong>Top Padding:</strong></label>
-        <input id="topPaddingInput" type="number" min="0" max="500" step="1" style="width: 60px; margin-left: 10px;">
-      </div>
-      <div>
-        <label for="sidePaddingInput"><strong>Side Padding:</strong></label>
-        <input id="sidePaddingInput" type="number" min="0" max="500" step="1" style="width: 60px; margin-left: 10px;">
-      </div>
-    </div>
 
-    <div class="code-available-here">
-      <a href="https://github.com/RupertLinacre/breakout_maths" target="_blank">Code for game available here</a>
+      <!-- Link -->
+      <div class="code-available-here">
+        <a href="https://github.com/RupertLinacre/breakout_maths" target="_blank">Code for game available here</a>
+      </div>
     </div>
   </div>
 
-  <!-- Only main.js is needed now -->
+  <!-- Main Script (needs modification to update #dynamic-block-info) -->
+
+  <!-- Add JavaScript to update block info -->
+
 </body>
 
 </html>
