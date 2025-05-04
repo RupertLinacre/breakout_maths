@@ -210,7 +210,11 @@ export class SprayBallReleaseStrategy extends BallReleaseStrategy {
             // Example: alternate speeds for visual effect
             const speed = (i % 2 === 0) ? 300 : 180;
             scene.time.delayedCall(i * this.delayMs, () => {
-                const ball = scene.shootBall(paddleX, paddleY - 10, direction, undefined, speed);
+                // Get current paddle position *inside* the delayed call
+                const currentPaddleX = scene.paddle.getX();
+                const currentPaddleY = scene.paddle.getY();
+                // Shoot from the current position
+                const ball = scene.shootBall(currentPaddleX, currentPaddleY - 10, direction, undefined, speed);
                 balls.push(ball);
             });
         }
