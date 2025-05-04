@@ -873,8 +873,8 @@ export default class GameScene extends Phaser.Scene {
         const newWidth = GameConfig.layout.gameWidth;
         const newHeight = GameConfig.layout.gameHeight;
         this.scale.resize(newWidth, newHeight);
-        // Restart this scene (full reset)
-        this.scene.restart();
+        // Use the robust restart method which handles timer reset
+        this.restartGame();
     }
 
     /**
@@ -891,7 +891,7 @@ export default class GameScene extends Phaser.Scene {
         const newWidth = GameConfig.layout.gameWidth;
         const newHeight = GameConfig.layout.gameHeight;
         this.scale.resize(newWidth, newHeight);
-        this.scene.restart();
+        this.restartGame();
     }
 
     /**
@@ -908,7 +908,7 @@ export default class GameScene extends Phaser.Scene {
         const newWidth = GameConfig.layout.gameWidth;
         const newHeight = GameConfig.layout.gameHeight;
         this.scale.resize(newWidth, newHeight);
-        this.scene.restart();
+        this.restartGame();
     }
 
     /**
@@ -925,7 +925,7 @@ export default class GameScene extends Phaser.Scene {
         const newWidth = GameConfig.layout.gameWidth;
         const newHeight = GameConfig.layout.gameHeight;
         this.scale.resize(newWidth, newHeight);
-        this.scene.restart();
+        this.restartGame();
     }
 
     /**
