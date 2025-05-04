@@ -96,15 +96,10 @@ export class MultiBallReleaseStrategy extends BallReleaseStrategy {
         };
         // Straight up
         const upDirection = { x: 0, y: -1 };
-        // Use GameConfig for base speed
-        const baseSpeed = (scene && scene.game && scene.game.config && scene.game.config.layout && scene.game.config.layout.ball && scene.game.config.layout.ball.speed) || 300;
-        // Fallback to 300 if not available
-        // But we can also import GameConfig directly if needed
-        // For now, use 300 for demonstration
         return [
-            { direction, speed: 360 }, // Center ball faster
-            { direction: mirroredDirection, speed: 240 }, // Mirrored ball slower
-            { direction: upDirection } // Default speed
+            { direction },
+            { direction: mirroredDirection },
+            { direction: upDirection }
         ];
     }
 
@@ -151,11 +146,7 @@ export class ArcBallReleaseStrategy extends BallReleaseStrategy {
                 x: Math.cos(radians),
                 y: Math.sin(radians)
             };
-            // Example: make outer balls slower, center balls faster
-            let speed;
-            if (i === 0 || i === this.ballCount - 1) speed = 220;
-            else if (i === Math.floor(this.ballCount / 2)) speed = 350;
-            specs.push(speed ? { direction, speed } : { direction });
+            specs.push({ direction });
         }
         return specs;
     }
@@ -207,14 +198,10 @@ export class SprayBallReleaseStrategy extends BallReleaseStrategy {
                 x: Math.cos(radians),
                 y: Math.sin(radians)
             };
-            // Example: alternate speeds for visual effect
-            const speed = (i % 2 === 0) ? 300 : 180;
             scene.time.delayedCall(i * this.delayMs, () => {
-                // Get current paddle position *inside* the delayed call
                 const currentPaddleX = scene.paddle.getX();
                 const currentPaddleY = scene.paddle.getY();
-                // Shoot from the current position
-                const ball = scene.shootBall(currentPaddleX, currentPaddleY - 10, direction, undefined, speed);
+                const ball = scene.shootBall(currentPaddleX, currentPaddleY - 10, direction);
                 balls.push(ball);
             });
         }
@@ -236,11 +223,6 @@ export class SprayBallReleaseStrategy extends BallReleaseStrategy {
  */
 export class PlayerAimBallReleaseStrategy extends BallReleaseStrategy {
     /**
-     * Phase for the sine wave controlling speed (static so it persists across instances)
-     */
-    static _speedPhase = 0;
-
-    /**
      * Execute the player-aimed ball release strategy (single ball using scene.launchAngle).
      * @param {Phaser.Scene} scene - The game scene (expected to have a launchAngle property).
      * @param {number} paddleX - Paddle X position.
@@ -253,7 +235,7 @@ export class PlayerAimBallReleaseStrategy extends BallReleaseStrategy {
         // If the scene has the required launchAngle property
         if (typeof scene.launchAngle !== 'number') {
             console.warn('PlayerAimBallReleaseStrategy requires scene to have launchAngle property. Defaulting to up.');
-            return [{ direction: { x: 0, y: -1 }, speed: 300 }]; // straight up, default speed
+            return [{ direction: { x: 0, y: -1 }, speed: 800 }]; // straight up, constant speed
         }
         // Use player-controlled launch angle from the scene
         const angleRad = Phaser.Math.DegToRad(scene.launchAngle); // Angle from scene and convert to radians
@@ -261,12 +243,9 @@ export class PlayerAimBallReleaseStrategy extends BallReleaseStrategy {
             x: Math.cos(angleRad),
             y: Math.sin(angleRad)
         };
-        // Calculate speed using a sine wave, oscillating between 200 and 400, starting at 300
-        const phase = PlayerAimBallReleaseStrategy._speedPhase;
-        const speed = 600 + 400 * Math.sin(phase);
-        // Increment phase for next release
-        PlayerAimBallReleaseStrategy._speedPhase += Math.PI / 6; // Adjust step for smoothness
-        return [{ direction: direction, speed }]; // spec with calculated direction and speed
+        // Use constant speed
+        const speed = 800;
+        return [{ direction: direction, speed }]; // spec with calculated direction and constant speed
     }
 
     /**
