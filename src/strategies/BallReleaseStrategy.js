@@ -17,6 +17,16 @@ export class BallReleaseStrategy {
         console.warn('BallReleaseStrategy.execute() called on base class - should be overridden');
         return [];
     }
+
+    /**
+     * Get the number of balls this strategy releases.
+     * Should be overridden by subclasses.
+     * @returns {number} The number of balls.
+     */
+    getBallCount() {
+        console.warn('BallReleaseStrategy.getBallCount() called on base class - should be overridden');
+        return 1; // Default to 1 if not overridden
+    }
 }
 
 /**
@@ -41,6 +51,14 @@ export class StandardBallReleaseStrategy extends BallReleaseStrategy {
             y: Math.sin(angle)
         };
         return [{ direction }];
+    }
+
+    /**
+     * Get the number of balls this strategy releases.
+     * @returns {number} The number of balls (1 for standard release).
+     */
+    getBallCount() {
+        return 1;
     }
 }
 
@@ -89,6 +107,14 @@ export class MultiBallReleaseStrategy extends BallReleaseStrategy {
             { direction: upDirection } // Default speed
         ];
     }
+
+    /**
+     * Get the number of balls this strategy releases.
+     * @returns {number} The number of balls (3 for multi-ball release).
+     */
+    getBallCount() {
+        return 3; // Releases three balls
+    }
 }
 
 /**
@@ -132,6 +158,14 @@ export class ArcBallReleaseStrategy extends BallReleaseStrategy {
             specs.push(speed ? { direction, speed } : { direction });
         }
         return specs;
+    }
+
+    /**
+     * Get the number of balls this strategy releases.
+     * @returns {number} The number of balls (based on ballCount parameter).
+     */
+    getBallCount() {
+        return this.ballCount; // Uses the constructor parameter
     }
 }
 
@@ -182,6 +216,14 @@ export class SprayBallReleaseStrategy extends BallReleaseStrategy {
         }
         return balls;
     }
+
+    /**
+     * Get the number of balls this strategy releases.
+     * @returns {number} The number of balls (based on ballCount parameter).
+     */
+    getBallCount() {
+        return this.ballCount; // Uses the constructor parameter
+    }
 }
 
 /**
@@ -221,5 +263,13 @@ export class PlayerAimBallReleaseStrategy extends BallReleaseStrategy {
         // Increment phase for next release
         PlayerAimBallReleaseStrategy._speedPhase += Math.PI / 6; // Adjust step for smoothness
         return [{ direction: direction, speed }]; // spec with calculated direction and speed
+    }
+
+    /**
+     * Get the number of balls this strategy releases.
+     * @returns {number} The number of balls (1 for player aim release).
+     */
+    getBallCount() {
+        return 1;
     }
 }

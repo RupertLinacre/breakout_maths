@@ -963,58 +963,77 @@ export default class GameScene extends Phaser.Scene {
     }
 
     /**
-     * Decrement the repeat count by 1 (minimum 0)
-     * @returns {boolean} true if decremented, false if already 0
+     * Consume a specified number of repeats if available.
+     * @param {number} amount - The number of repeats to consume.
+     * @returns {boolean} True if repeats were consumed, false otherwise.
      */
-    decrementRepeats() {
-        if (this.repeatCount > 0) {
-            this.repeatCount--;
+    consumeRepeats(amount) {
+        if (this.repeatCount >= amount) {
+            this.repeatCount -= amount;
             // Notify UI Scene to update display
             const uiScene = this.scene.get('UIScene');
             if (uiScene && typeof uiScene.updateRepeatDisplay === 'function') {
                 uiScene.updateRepeatDisplay(this.repeatCount);
             }
-            return true; // Successfully decremented
+            console.log(`Consumed ${amount} repeats. Remaining: ${this.repeatCount}`);
+            return true; // Successfully consumed
         }
-        return false; // No repeats to decrement
+        console.log(`Failed to consume ${amount} repeats. Only ${this.repeatCount} available.`);
+        return false; // Not enough repeats
     }
 
     /**
      * Trigger the repeat of the last activated strategy
      */
     triggerRepeat() {
-        if (this.repeatCount <= 0) {
-            console.log("Cannot trigger repeat: No repeats left.");
-            this.showMessage("No repeats left!", "#f39c12");
-            return;
-        }
+        // Check if a strategy is stored
         if (!this.lastActivatedStrategy || !this.lastActivationParams) {
             console.log("Cannot trigger repeat: No strategy stored yet.");
             this.showMessage("Solve a block first!", "#f39c12");
             return;
         }
-        console.log("Triggering repeat of strategy:", this.lastActivatedStrategy.constructor.name);
-        // Decrement count first
-        if (this.decrementRepeats()) {
+
+        // Get the required number of repeats (ball count)
+        const requiredRepeats = this.lastActivatedStrategy.getBallCount();
+        console.log(`Attempting repeat of ${this.lastActivatedStrategy.constructor.name}. Requires ${requiredRepeats} repeats. Have ${this.repeatCount}.`);
+
+        // Check if enough repeats are available
+        if (this.repeatCount < requiredRepeats) {
+            console.log("Cannot trigger repeat: Not enough repeats left.");
+            // Give more informative message
+            this.showMessage(`Need ${requiredRepeats} repeats, have ${this.repeatCount}`, "#e74c3c"); // Red color for failure
+            return;
+        }
+
+        // Consume the repeats (BEFORE executing the strategy)
+        if (this.consumeRepeats(requiredRepeats)) {
             // Execute the stored strategy with stored parameters
+            console.log("Repeats sufficient. Executing strategy.");
             const ballSpecs = this.lastActivatedStrategy.execute(
-                this,
+                this, // the scene context
                 this.lastActivationParams.paddleX,
                 this.lastActivationParams.paddleY,
                 this.lastActivationParams.targetX,
                 this.lastActivationParams.targetY
             );
-            // If the strategy returns specs, shoot them now from the current paddle position
+
+            // Handle ball shooting if strategy returns specs
+            // (Spray strategy handles its own timing/shooting within execute)
             if (Array.isArray(ballSpecs)) {
                 const currentPaddleX = this.paddle.getX();
                 const currentPaddleY = this.paddle.getY();
                 ballSpecs.forEach(spec => {
                     if (spec && spec.direction) {
+                        // Shoot from current paddle pos, using stored strategy's directions/speed
                         this.shootBall(currentPaddleX, currentPaddleY - 10, spec.direction, undefined, spec.speed);
                     }
                 });
             }
-            // If the strategy itself shoots balls (like Spray), nothing extra needed
+        } else {
+            // This case should technically not be reached due to the check above,
+            // but good practice to handle potential race conditions or logic errors.
+            console.error("Error: Repeat check passed but consumption failed.");
+            this.showMessage("Repeat Error!", "#e74c3c");
         }
     }
 }
