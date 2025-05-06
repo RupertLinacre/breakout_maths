@@ -20,6 +20,7 @@ const GameConfig = {
     // The actual year levels will be mapped based on the selected difficulty tier
     spawnRateDistribution: [0.60, 0.15, 0.15, 0.10],
 
+
     // Block grid configuration parameters
     blockGrid: {
         columns: 20,
@@ -31,6 +32,20 @@ const GameConfig = {
         sidePadding: 50,  // Explicit padding on left and right sides
         topPadding: 50,   // Padding from top of game to first row of blocks
         bottomPadding: 220 // Increased padding for more space below paddle and for input box
+    },
+
+    // --- Block Pattern Definitions ---
+    blockPatterns: {
+        standard: (col, row, totalCols, totalRows) => true,
+        checkerboard: (col, row, totalCols, totalRows) => (col + row) % 2 === 0,
+    },
+
+    // Current block pattern (default to standard)
+    currentBlockPattern: 'standard',
+
+    // Get available block patterns
+    getAvailableBlockPatterns: function () {
+        return Object.keys(this.blockPatterns);
     },
 
     // Layout will be computed by updateLayout()
@@ -145,6 +160,21 @@ const GameConfig = {
 
         return rates;
     }
+};
+
+
+// --- Block Pattern Management Methods ---
+GameConfig.getBlockPatternFunction = function (patternName) {
+    const name = patternName || this.currentBlockPattern;
+    return this.blockPatterns[name] || this.blockPatterns.standard;
+};
+
+GameConfig.setBlockPattern = function (patternName) {
+    if (this.blockPatterns[patternName]) {
+        this.currentBlockPattern = patternName;
+        return true;
+    }
+    return false;
 };
 
 // Initialize layout

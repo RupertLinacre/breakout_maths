@@ -102,6 +102,7 @@ setTimeout(() => {
         });
     }
 
+
     // Set up side padding input logic
     const sidePaddingInput = document.getElementById('sidePaddingInput');
     if (sidePaddingInput) {
@@ -120,6 +121,30 @@ setTimeout(() => {
                     gameScene.setSidePaddingAndRestart(val);
                 }
             }
+        });
+    }
+
+    // Set up block pattern selector logic
+    const blockPatternSelector = document.getElementById('blockPatternSelector');
+    if (blockPatternSelector) {
+        // Populate options
+        const availablePatterns = GameConfig.getAvailableBlockPatterns();
+        availablePatterns.forEach(patternName => {
+            const option = document.createElement('option');
+            option.value = patternName;
+            option.textContent = patternName.charAt(0).toUpperCase() + patternName.slice(1); // Capitalize
+            blockPatternSelector.appendChild(option);
+        });
+
+        const savedPattern = localStorage.getItem('mathGameBlockPattern') || GameConfig.currentBlockPattern;
+        blockPatternSelector.value = savedPattern;
+        GameConfig.setBlockPattern(savedPattern); // Ensure GameConfig is also in sync
+
+        blockPatternSelector.addEventListener('change', (e) => {
+            const selectedPattern = e.target.value;
+            localStorage.setItem('mathGameBlockPattern', selectedPattern);
+            const gameScene = game.scene.getScene('GameScene');
+            gameScene?.setBlockPatternAndRestart(selectedPattern);
         });
     }
 

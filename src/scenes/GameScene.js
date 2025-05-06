@@ -11,6 +11,18 @@ import GameConfig from '../config/gameConfig.js';
  * Main game scene for gameplay logic
  */
 export default class GameScene extends Phaser.Scene {
+
+    /**
+     * Set the block pattern and restart the game.
+     * @param {string} patternName - The name of the block pattern to use.
+     */
+    setBlockPatternAndRestart(patternName) {
+        const success = GameConfig.setBlockPattern(patternName);
+        if (success) {
+            console.log(`Block pattern set to: ${patternName}`);
+            this.restartGame(); // Will call createBlockGrid which now uses the new pattern
+        }
+    }
     /**
      * Default block difficulty spawn rates
      * These constants control the base probability of each difficulty level
@@ -199,15 +211,21 @@ export default class GameScene extends Phaser.Scene {
         this.blockGrid = Array(cols).fill().map(() => Array(rows).fill(null));
         this.mathBlocks = [];
 
-        // Create blocks
+        // --- Get the pattern function ---
+        const patternFunction = GameConfig.getBlockPatternFunction();
+
+        // Create blocks using the pattern function
         for (let col = 0; col < cols; col++) {
             for (let row = 0; row < rows; row++) {
-                const x = startX + col * spacing;
-                const y = startY + row * rowSpacing;
-
-                // Create a regular block
-                const block = new Block(this, x, y);
-                this.blockGrid[col][row] = block;
+                // Use the pattern function to determine if a block should be placed
+                if (patternFunction(col, row, cols, rows)) {
+                    const x = startX + col * spacing;
+                    const y = startY + row * rowSpacing;
+                    const block = new Block(this, x, y);
+                    this.blockGrid[col][row] = block;
+                } else {
+                    this.blockGrid[col][row] = null; // Mark as empty
+                }
             }
         }
 
