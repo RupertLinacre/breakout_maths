@@ -39,7 +39,7 @@ const GameConfig = {
         standard: (col, row, totalCols, totalRows) => true,
         checkerboard: (col, row, totalCols, totalRows) => (col + row) % 2 === 0,
         // New patterns:
-        alternateRows: (col, row, totalCols, totalRows) => row % 2 === 0, // Blocks on rows 0, 2, 4...
+        alternateRows: (col, row, totalCols, totalRows) => row % 3 === 1, // Blocks on rows 0, 2, 4...
         columnGulleys: (col, row, totalCols, totalRows) => col % 3 === 0, // Blocks in columns 0, 3, 6, ...
         hollowSquare: (col, row, totalCols, totalRows) => {
             if (totalRows < 5 || totalCols < 5) return true; // fallback for small grids
@@ -51,6 +51,42 @@ const GameConfig = {
             return Math.abs(col - centerCol) <= halfWidthAtRow;
         },
         sparseGrid: (col, row, totalCols, totalRows) => col % 2 === 0 && row % 2 === 0,
+
+        // --- Channel/Gulley Patterns ---
+        alternatingVerticalGaps: (col, row, totalCols, totalRows) => col % 2 === 0,
+
+        centralCrossGaps: (col, row, totalCols, totalRows) => {
+            const middleRow = Math.floor(totalRows / 2);
+            const middleCol = Math.floor(totalCols / 2);
+            // Block is NOT present if it's on the middle row OR middle col
+            return !(row === middleRow || col === middleCol);
+        },
+
+        diagonalChutes: (col, row, totalCols, totalRows) => (col + row) % 4 < 2,
+
+        snakingRiverbed: (col, row, totalCols, totalRows) => {
+            if (totalRows < 3) return true; // For very few rows, just fill it
+            const amplitude = Math.max(1, Math.floor(totalRows / 3)); // How far the river deviates
+            const midPoint = Math.floor(totalRows / 2);
+            const riverCenterY = midPoint + Math.floor(amplitude * Math.sin((col / totalCols) * Math.PI * 3)); // 3 cycles of sine wave
+            const riverWidth = 2; // How many rows wide the empty river is
+            // Block is present if NOT in riverbed
+            const isInRiverbed = row >= riverCenterY - Math.floor((riverWidth - 1) / 2) && row <= riverCenterY + Math.floor(riverWidth / 2);
+            return !isInRiverbed;
+        },
+
+        gridOfGulleys: (col, row, totalCols, totalRows) => {
+            const blockClusterWidth = 3;
+            const blockClusterHeight = 2;
+            const verticalGulleyWidth = 1;
+            const horizontalGulleyHeight = 1;
+
+            const colInPattern = col % (blockClusterWidth + verticalGulleyWidth);
+            const rowInPattern = row % (blockClusterHeight + horizontalGulleyHeight);
+
+            // Block is present if it's within the solid cluster part of the pattern
+            return colInPattern < blockClusterWidth && rowInPattern < blockClusterHeight;
+        },
     },
 
     // Current block pattern (default to standard)
