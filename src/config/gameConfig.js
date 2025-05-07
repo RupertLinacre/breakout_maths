@@ -38,6 +38,19 @@ const GameConfig = {
     blockPatterns: {
         standard: (col, row, totalCols, totalRows) => true,
         checkerboard: (col, row, totalCols, totalRows) => (col + row) % 2 === 0,
+        // New patterns:
+        alternateRows: (col, row, totalCols, totalRows) => row % 2 === 0, // Blocks on rows 0, 2, 4...
+        columnGulleys: (col, row, totalCols, totalRows) => col % 3 === 0, // Blocks in columns 0, 3, 6, ...
+        hollowSquare: (col, row, totalCols, totalRows) => {
+            if (totalRows < 5 || totalCols < 5) return true; // fallback for small grids
+            return row < 2 || row >= totalRows - 2 || col < 2 || col >= totalCols - 2;
+        },
+        pyramid: (col, row, totalCols, totalRows) => {
+            const centerCol = Math.floor(totalCols / 2);
+            const halfWidthAtRow = row;
+            return Math.abs(col - centerCol) <= halfWidthAtRow;
+        },
+        sparseGrid: (col, row, totalCols, totalRows) => col % 2 === 0 && row % 2 === 0,
     },
 
     // Current block pattern (default to standard)
